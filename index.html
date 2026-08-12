@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crew Scheduling — interactive demo</title>
+<style>
+  /* Portfolio demo. The chrome is neutral; the screens inside keep the real
+     app's look, so what a visitor clicks is what the product actually does. */
+  :root{
+    --brand:#2E9BA4; --brand-deep:#14666E; --ink:#0B2B2E;
+    --ground:#f5f7fb; --surface:#fff; --line:#e5e7eb; --muted:#6b7280; --body:#111827;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--body);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+
+  /* ---- demo chrome ---- */
+  .bar{background:var(--ink);color:#fff;padding:.85rem 1.25rem;display:flex;
+       align-items:center;gap:1.25rem;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  .logo{font-weight:800;letter-spacing:.06em;font-size:1rem}
+  .logo span{color:var(--brand)}
+  nav{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto}
+  nav button{background:transparent;border:1px solid #33565a;color:#cfe3e4;padding:.45rem .9rem;
+             border-radius:999px;cursor:pointer;font-size:.86rem;font-weight:600}
+  nav button:hover{background:#173437}
+  nav button[aria-current="true"]{background:var(--brand);border-color:var(--brand);color:#04211f}
+  .reset{background:transparent;border:1px solid #33565a;color:#8fa9ab;padding:.45rem .8rem;
+         border-radius:999px;cursor:pointer;font-size:.8rem}
+  .demonote{background:#fff7ed;border-bottom:1px solid #fed7aa;color:#7a4a10;
+            padding:.6rem 1.25rem;font-size:.85rem}
+  main{padding:1.5rem 1.25rem 4rem;max-width:1400px;margin:0 auto}
+  .view{display:none} .view.on{display:block}
+
+  /* ---- shared app look ---- */
+  .panel{background:var(--surface);border-radius:12px;padding:1rem 1.25rem;
+         box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:1rem}
+  h2{margin:.1rem 0 .75rem;font-size:1.2rem}
+  h3{margin:1.1rem 0 .4rem;font-size:1rem}
+  .hint{color:var(--muted);font-size:.85rem;line-height:1.5}
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.2rem}
+  input[type=text],input[type=date],input[type=time],input[type=number],select,textarea{
+    width:100%;padding:.6rem;border:1px solid #d1d5db;border-radius:8px;font-size:.95rem;
+    font-family:inherit;background:#fff;color:var(--body)}
+  textarea{resize:vertical}
+  .field{margin:.6rem 0}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+  .pair.narrow{grid-template-columns:9rem 1fr}
+  button.primary{background:#2563eb;color:#fff;border:none;border-radius:8px;
+                 padding:.75rem 1.15rem;font-size:1rem;cursor:pointer;font-weight:600}
+  button.primary:hover{background:#1d4ed8}
+  button.ghost{background:transparent;border:1px solid #d1d5db;color:#4b5563;
+               border-radius:8px;padding:.45rem .85rem;font-size:.85rem;cursor:pointer}
+  .cols{display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,1.9fr);
+        gap:1rem;align-items:start}
+  @media(max-width:980px){.cols{grid-template-columns:1fr}.pair,.pair.narrow{grid-template-columns:1fr}}
+
+  /* ---- service picker ---- */
+  .services{border:1px solid #d1d5db;border-radius:8px;max-height:19rem;overflow-y:auto;
+            padding:.35rem .5rem;background:#fdfdfe}
+  .svc-group{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+             font-weight:700;margin:.7rem 0 .25rem}
+  .svc-group:first-child{margin-top:.2rem}
+  .svc{display:flex;align-items:center;gap:.55rem;padding:.3rem .35rem;border-radius:6px;
+       cursor:pointer;font-size:.9rem}
+  .svc:hover{background:#eff6ff}
+  .svc input{width:auto;margin:0;flex:none;accent-color:#2563eb}
+  .svc-name{flex:1}
+  .svc-price{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.85rem}
+  .svc.on{background:#ecfdf5}
+  .svc.on .svc-price{color:#047857;font-weight:700}
+  .total{display:flex;justify-content:space-between;align-items:baseline;
+         padding:.7rem .2rem 0;font-size:.9rem;color:#4b5563}
+  .total strong{font-size:1.2rem;color:var(--body);font-variant-numeric:tabular-nums}
+
+  /* ---- month calendar ---- */
+  .calhead{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+  .calnav{display:flex;align-items:center;gap:.9rem;font-size:.9rem}
+  .calnav button{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.9rem;padding:.2rem}
+  .calwrap{overflow-x:auto}
+  table.cal{table-layout:fixed;min-width:900px;width:100%;border-collapse:collapse;margin-top:.5rem}
+  table.cal th{padding:.4rem;font-size:.72rem;color:var(--muted);text-transform:uppercase;
+               letter-spacing:.04em;text-align:left;border-bottom:1px solid var(--line)}
+  table.cal td{vertical-align:top;height:104px;padding:.35rem;border:1px solid #f0f1f3}
+  td.outside{background:#fafafa} td.outside .daynum{color:#d1d5db}
+  td.today{background:#eff6ff}
+  td.today .daynum{background:#2563eb;color:#fff;border-radius:999px;width:1.4rem;height:1.4rem;
+                   display:inline-flex;align-items:center;justify-content:center}
+  .daynum{font-size:.75rem;color:var(--muted);margin-bottom:.25rem}
+  .ev{border-radius:6px;padding:.25rem .4rem;margin-bottom:.25rem;font-size:.73rem;
+      border-left:3px solid #9ca3af;background:#f9fafb;line-height:1.3}
+  .ev.confirmed{background:#ecfdf5;border-left-color:#059669}
+  .ev.short{background:#fffbeb;border-left-color:#d97706}
+  .ev.unassigned{background:#f3f4f6;border-left-color:#9ca3af}
+  .ev.cancelled{background:#f9fafb;border-left-color:#e5e7eb;color:#9ca3af}
+  .ev.cancelled .evtitle{text-decoration:line-through}
+  .evtop{display:flex;gap:.3rem;align-items:baseline}
+  .evtime{font-weight:700;white-space:nowrap}
+  .evtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .evcrew{color:#4b5563;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ev.cancelled .evcrew{color:#9ca3af}
+  .evtag{font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#b91c1c}
+  .key{display:inline-block;border-radius:4px;padding:.05rem .45rem;margin-left:.4rem;
+       font-size:.75rem;border-left:3px solid #9ca3af}
+  .key.confirmed{background:#ecfdf5;border-left-color:#059669}
+  .key.short{background:#fffbeb;border-left-color:#d97706}
+  .key.unassigned{background:#f3f4f6;border-left-color:#9ca3af}
+  .key.cancelled{background:#f9fafb;border-left-color:#e5e7eb;color:#9ca3af;text-decoration:line-through}
+
+  /* ---- roster ---- */
+  .job{border:1px solid var(--line);border-radius:10px;padding:.9rem;margin-bottom:.9rem}
+  .job h4{margin:0 0 .5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .count{float:right;text-transform:none;letter-spacing:0;font-weight:700;border-radius:999px;
+         padding:.1rem .6rem;font-size:.78rem}
+  .count.short{background:#fef3c7;color:#92400e}
+  .count.full{background:#d1fae5;color:#047857}
+  .count.over{background:#dbeafe;color:#1d4ed8}
+  .meta{color:var(--muted);font-size:.84rem;margin:.35rem 0 .5rem}
+  .jobactions{display:flex;gap:.5rem;flex-wrap:wrap;margin:.3rem 0}
+  .cancelbtn{background:transparent;border:1px solid #fca5a5;color:#b91c1c;padding:.35rem .8rem;
+             font-size:.85rem;border-radius:8px;cursor:pointer}
+  .cancelbtn:hover{background:#fef2f2}
+  .deletebtn{background:transparent;border:1px solid var(--line);color:var(--muted);
+             padding:.35rem .8rem;font-size:.85rem;border-radius:8px;cursor:pointer}
+  .deletebtn:hover{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
+  .job.cancelled{background:#fafafa;border-style:dashed}
+  .job.cancelled .jobbody{opacity:.4;pointer-events:none}
+  .job.cancelled .count{display:none}
+  .ctag{display:none;float:right;margin-left:.5rem;background:#fee2e2;color:#b91c1c;
+        border-radius:999px;padding:.1rem .6rem;font-size:.76rem;font-weight:700;
+        text-transform:none;letter-spacing:0}
+  .job.cancelled .ctag{display:inline-block}
+  .grouplabel{font-size:.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:.5rem}
+  .crew{display:flex;flex-wrap:wrap;gap:.4rem;margin:.35rem 0 .7rem}
+  .crew label{display:inline-flex;align-items:center;gap:.35rem;background:#f3f4f6;
+              border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;
+              cursor:pointer;font-size:.88rem;margin:0}
+  .crew label.match{background:#ecfdf5;border-color:#a7f3d0}
+  .crew label.partial{background:#fffbeb;border-color:#fde68a}
+  .crew label.off{opacity:.45}
+  .crew label .win{font-size:.74rem;color:var(--muted)}
+  .crew input{margin:0;width:auto}
+  .out{width:100%;min-height:420px;font-family:Consolas,Menlo,monospace;font-size:.85rem;
+       line-height:1.45;white-space:pre;border:1px solid #d1d5db;border-radius:8px;padding:.75rem}
+  .empty{background:#f9fafb;border:1px dashed #d1d5db;border-radius:10px;padding:1.5rem;
+         text-align:center;color:var(--muted)}
+  .warn{background:#fef9c3;color:#92400e;padding:.7rem 1rem;border-radius:8px;margin:.6rem 0;font-size:.88rem}
+  .ok{background:#ecfdf5;color:#047857;padding:.7rem 1rem;border-radius:8px;margin:.6rem 0;font-size:.88rem}
+  table.avail{width:100%;border-collapse:collapse;font-size:.85rem}
+  table.avail th{text-align:left;padding:.4rem .3rem;color:var(--muted);font-weight:600;
+                 border-bottom:1px solid var(--line)}
+  table.avail td{padding:.5rem .3rem;border-bottom:1px solid #f3f4f6;vertical-align:top}
+  .pill{display:inline-block;border-radius:999px;padding:.1rem .5rem;font-size:.72rem;white-space:nowrap}
+  .pill.yes{background:#ecfdf5;color:#047857}
+  .pill.none{background:#f3f4f6;color:var(--muted)}
+  .slot{display:block;color:#374151}
+  .slot em{color:var(--muted);font-style:normal}
+
+  /* ---- crew availability (phone) ---- */
+  .phone{max-width:430px;margin:0 auto;background:#fff;border-radius:14px;padding:1.5rem;
+         box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .day{border:1px solid var(--line);border-radius:12px;padding:.85rem;margin-bottom:.65rem}
+  .day.on{border-color:#93c5fd;background:#f8fbff}
+  .day-head{display:flex;align-items:center;gap:.65rem}
+  .day-head input{width:22px;height:22px;margin:0;flex:none;accent-color:#2563eb}
+  .day-head label{font-weight:600;font-size:1rem;cursor:pointer;flex:1;margin:0;color:var(--body)}
+  .day-head .date{display:block;font-weight:400;font-size:.8rem;color:var(--muted)}
+  .times{display:none;margin-top:.75rem}
+  .day.on .times{display:block}
+  .row{display:flex;gap:.6rem;flex-wrap:wrap}
+  .row .fld{flex:1 1 130px}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:1.5rem;background:var(--ink);
+         color:#fff;padding:.8rem 1.3rem;border-radius:999px;font-size:.9rem;z-index:50;
+         opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="logo">CREW <span>SCHEDULING</span></div>
+  <nav>
+    <button data-view="staff" aria-current="false">1 &middot; Crew update availability</button>
+    <button data-view="dashboard" aria-current="true">2 &middot; Office posts a job</button>
+    <button data-view="roster" aria-current="false">3 &middot; Assign crews &amp; send</button>
+  </nav>
+  <button class="reset" id="reset">Start over</button>
+</div>
+
+<div class="demonote">
+  <strong>Interactive demo.</strong> Everything here works &mdash; create a job, assign a crew, generate
+  the WhatsApp message. Nothing is saved: refresh the page and it returns to the sample week.
+</div>
+
+<main>
+
+<!-- ============ 1. CREW ============ -->
+<section class="view" id="view-staff">
+  <div class="phone">
+    <h2 style="margin-top:0">Hi <span id="sa-name">Crew 1</span></h2>
+    <p class="hint">Tick the days you can work and set your hours. You can come back and change
+      this any time.</p>
+    <div class="field">
+      <label for="sa-who">Pretend to be</label>
+      <select id="sa-who"></select>
+    </div>
+    <div id="sa-saved" class="ok" style="display:none">Saved. The office can see your hours now.</div>
+    <div id="sa-days"></div>
+    <div class="field">
+      <label for="sa-notes">Anything else for the office?</label>
+      <textarea id="sa-notes" rows="2" placeholder="Optional"></textarea>
+    </div>
+    <button class="primary" style="width:100%" id="sa-save">Save my availability</button>
+    <p class="hint" style="text-align:center;margin-top:1rem">
+      In the real system every crew member opens this from one link shared in the WhatsApp group
+      and lands straight on their own name.
+    </p>
+  </div>
+</section>
+
+<!-- ============ 2. OFFICE ============ -->
+<section class="view on" id="view-dashboard">
+  <section class="panel">
+    <div class="calhead">
+      <h2 style="margin:0">Job calendar</h2>
+      <div class="calnav">
+        <button id="cal-prev">&larr; Previous</button>
+        <strong id="cal-label"></strong>
+        <button id="cal-next">Next &rarr;</button>
+      </div>
+    </div>
+    <p class="hint">
+      <span class="key confirmed">Fully staffed</span>
+      <span class="key short">Short of crew</span>
+      <span class="key unassigned">Not assigned</span>
+      <span class="key cancelled">Cancelled</span>
+    </p>
+    <p class="hint" id="cal-totals"></p>
+    <div class="calwrap"><table class="cal">
+      <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+      <tbody id="cal-body"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <h2>New job</h2>
+    <div class="pair">
+      <div><label for="j-client">Client name</label><input type="text" id="j-client" placeholder="Client A" /></div>
+      <div><label for="j-phone">Client phone</label><input type="text" id="j-phone" placeholder="+6580000000" /></div>
+    </div>
+    <div class="field"><label for="j-addr">Address</label>
+      <input type="text" id="j-addr" placeholder="12 Northview Ave #09-205" /></div>
+    <div class="field"><label for="j-date">Date</label><input type="date" id="j-date" /></div>
+    <div class="pair">
+      <div><label for="j-start">Start time</label><input type="time" id="j-start" value="09:00" /></div>
+      <div><label for="j-end">End time</label><input type="time" id="j-end" value="14:00" /></div>
+    </div>
+    <div class="pair narrow" style="margin-top:.6rem">
+      <div><label for="j-need">Crew members needed</label><input type="number" id="j-need" min="1" value="2" /></div>
+      <div><label for="j-notes">Remarks</label>
+        <input type="text" id="j-notes" placeholder="Post-reno · park at the visitor lot" /></div>
+    </div>
+    <h3>Services <span class="hint" style="font-weight:400">— tick everything this job covers</span></h3>
+    <div class="services" id="j-services"></div>
+    <div class="total"><span id="j-count">Nothing selected</span><strong id="j-sum">$0</strong></div>
+    <button class="primary" style="margin-top:1rem" id="j-create">Create job</button>
+  </section>
+</section>
+
+<!-- ============ 3. ROSTER ============ -->
+<section class="view" id="view-roster">
+  <div class="panel" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <button class="ghost" id="wk-prev">&larr; Previous week</button>
+    <strong id="wk-label"></strong>
+    <button class="ghost" id="wk-next">Next week &rarr;</button>
+  </div>
+  <div class="cols">
+    <section class="panel">
+      <h2>1. Crew availability</h2>
+      <p class="hint">Crew members fill this in themselves. Their hours appear here automatically.</p>
+      <div id="r-availnote"></div>
+      <table class="avail"><thead><tr><th>Crew member</th><th>Available</th></tr></thead>
+        <tbody id="r-avail"></tbody></table>
+    </section>
+    <div>
+      <section class="panel">
+        <h2>2. Assign crews</h2>
+        <div id="r-jobs"></div>
+        <button class="primary" id="r-generate">Generate message</button>
+      </section>
+      <section class="panel">
+        <h2>3. Copy back to WhatsApp</h2>
+        <div id="r-out"><div class="empty">Tick a crew, then press <strong>Generate message</strong>.</div></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ------------------------------------------------------------------ data */
+const SERVICES = [
+  ["Home cleaning — standard", [
+    ["Studio / 1 Bedroom","Studio / 1 Bedroom Standard Cleaning",300],
+    ["2 Bedroom","2 Bedroom Standard Cleaning",400],
+    ["3 Bedroom","3 Bedroom Standard Cleaning",480],
+    ["4 Bedroom","4 Bedroom Standard Cleaning",540],
+    ["Large / Landed","Large / Landed Standard Cleaning",680]]],
+  ["Home cleaning — with floor deep cleaning", [
+    ["Studio / 1 Bedroom","Studio / 1 Bedroom Cleaning + FDC",460],
+    ["2 Bedroom","2 Bedroom Cleaning + FDC",540],
+    ["3 Bedroom","3 Bedroom Cleaning + FDC",640],
+    ["4 Bedroom","4 Bedroom Cleaning + FDC",740],
+    ["Large / Landed","Large / Landed Cleaning + FDC",860]]],
+  ["Sofa deep cleaning (incl. leather)", [
+    ["1 Seater","1 Seater Sofa Deep Cleaning",60],
+    ["2 Seater","2 Seater Sofa Deep Cleaning",80],
+    ["3 Seater","3 Seater Sofa Deep Cleaning",100],
+    ["Other size","Sofa Deep Cleaning (other size)",null]]],
+  ["Mattress deep cleaning", [
+    ["Single / Super Single","Single / Super Single Mattress Deep Cleaning",60],
+    ["Queen / King","Queen / King Mattress Deep Cleaning",100],
+    ["Bed Frame + Headboard","Bed Frame + Headboard Deep Cleaning",60]]],
+  ["Chair deep cleaning", [
+    ["Dining Chairs, up to 6","Dining Chairs Deep Cleaning (up to 6)",80],
+    ["Gaming / Office Chair","Gaming / Office Chair Deep Cleaning",60]]],
+  ["Rug / carpet deep cleaning", [
+    ["Small, 120x190cm","Small Rug / Carpet Deep Cleaning",60],
+    ["Medium, 170x240cm","Medium Rug / Carpet Deep Cleaning",100],
+    ["Large, up to 300x400cm","Large Rug / Carpet Deep Cleaning",140]]],
+  ["Baby equipment", [
+    ["Baby Cot","Baby Cot Deep Cleaning",40],
+    ["Single Stroller","Single Stroller Deep Cleaning",60],
+    ["Double Stroller","Double Stroller Deep Cleaning",100],
+    ["Car Seat","Car Seat Deep Cleaning",60]]],
+  ["Curtain cleaning", [
+    ["Blackout, per set","Blackout Curtain Cleaning",60],
+    ["Day + Night, per set","Day + Night Curtain Cleaning",90]]],
+  ["Add-ons", [
+    ["Formaldehyde Treatment","Formaldehyde Treatment",160],
+    ["Vinyl Coating","Vinyl Coating",160],
+    ["Antimicrobial Treatment","Antimicrobial Treatment",20]]]
+];
+const PRICE = {}; SERVICES.forEach(g=>g[1].forEach(([,v,p])=>PRICE[v]=p));
+
+const DAY_FULL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MON3=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONF=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* ------------------------------------------------------------- date utils */
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+function mondayOf(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(0,0,0,0);return x;}
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m;};
+function fmtTime(t){let[h,m]=t.split(":").map(Number);const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${pad(m)} ${ap}`;}
+function fmtDate(s){const d=parse(s);return `${d.getDate()} ${MON3[d.getMonth()]} ${d.getFullYear()}`;}
+const dayIdx=s=>(parse(s).getDay()+6)%7;
+
+const TODAY=new Date(); TODAY.setHours(0,0,0,0);
+const WEEK0=mondayOf(TODAY);
+const D=n=>iso(addDays(WEEK0,n));
+
+/* ------------------------------------------------------------ initial data */
+function seed(){
+  const staff=Array.from({length:10},(_,i)=>({id:i+1,name:`Crew ${i+1}`}));
+  const avail={
+    1:[{date:D(0),start:"08:00",end:"19:00",note:""},{date:D(1),start:"08:00",end:"19:00",note:""},
+       {date:D(2),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""}],
+    2:[{date:D(0),start:"13:00",end:"19:00",note:"Afternoon only, morning class"},
+       {date:D(2),start:"08:00",end:"18:00",note:""},{date:D(3),start:"08:00",end:"18:00",note:""},
+       {date:D(4),start:"08:00",end:"19:00",note:""}],
+    3:[{date:D(0),start:"08:00",end:"18:00",note:""},{date:D(1),start:"08:00",end:"14:00",note:""},
+       {date:D(4),start:"08:00",end:"19:00",note:""},{date:D(5),start:"09:00",end:"15:00",note:""}],
+    4:[{date:D(2),start:"08:00",end:"18:00",note:""},
+       {date:D(3),start:"08:00",end:"18:00",note:"Can start earlier if needed"}],
+    5:[{date:D(0),start:"09:00",end:"17:00",note:""},{date:D(1),start:"09:00",end:"17:00",note:""},
+       {date:D(3),start:"09:00",end:"17:00",note:""}],
+    6:[{date:D(1),start:"08:00",end:"13:00",note:"Must leave by 1pm"},
+       {date:D(2),start:"08:00",end:"13:00",note:""},{date:D(4),start:"08:00",end:"13:00",note:""}],
+    7:[{date:D(0),start:"10:00",end:"20:00",note:""},{date:D(2),start:"10:00",end:"20:00",note:""},
+       {date:D(5),start:"10:00",end:"16:00",note:""}],
+    8:[{date:D(3),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""},
+       {date:D(5),start:"08:00",end:"19:00",note:""},{date:D(6),start:"09:00",end:"14:00",note:""}]
+    /* Crew 9 and Crew 10 have not submitted yet — that is what the amber banner shows. */
+  };
+  const notes={1:"Prefer north side jobs",8:"Has own transport"};
+  let n=0;
+  const mk=(c,ph,sv,ad,dt,st,en,need,nt)=>({
+    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,end:en,
+    need:need,notes:nt||"",crew:[],lead:null,cancelled:false});
+  const jobs=[
+    mk("Client A","+6580000001",["3 Bedroom Cleaning + FDC","Formaldehyde Treatment"],
+       "12 Northview Ave #09-205",D(0),"09:00","14:00",2,"Shift the fridge back after cleaning."),
+    mk("Client B","+6580000002",["3 Seater Sofa Deep Cleaning","Antimicrobial Treatment"],
+       "28 Midtown St #05-118",D(0),"15:00","18:00",1,""),
+    mk("Client C","+6580000003",["Queen / King Mattress Deep Cleaning"],
+       "5 Eastpoint Ctrl #11-402",D(1),"10:00","12:00",1,"Dog at home, please close the gate."),
+    mk("Client D","+6580000004",["4 Bedroom Standard Cleaning"],
+       "88 Ringside Rd #12-330",D(2),"09:00","15:00",2,""),
+    mk("Client E","+6580000005",["Large / Landed Cleaning + FDC"],
+       "9 Parkview Ave #03-15",D(4),"09:00","17:00",3,"Post-renovation. Heavy dust.")
+  ];
+  jobs[0].crew=[1,3]; jobs[0].lead=1;          // one already staffed, so the calendar is not empty
+  return {staff,avail,notes,jobs,nextId:n,week:iso(WEEK0),month:{y:TODAY.getFullYear(),m:TODAY.getMonth()},who:1};
+}
+let S=seed();
+
+/* ------------------------------------------------------------------- helpers */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nameOf=id=>{const s=S.staff.find(x=>x.id===id);return s?s.name:"";};
+const title=j=>j.services.length?j.services.join(" + "):j.client;
+const priceOf=j=>{const p=j.services.map(v=>PRICE[v]).filter(v=>v!=null);return p.length?p.reduce((a,b)=>a+b,0):null;};
+const weekJobs=()=>{const a=S.week,b=iso(addDays(parse(S.week),6));
+  return S.jobs.filter(j=>j.date>=a&&j.date<=b).sort((x,y)=>x.date===y.date?toMin(x.start)-toMin(y.start):x.date.localeCompare(y.date));};
+
+let toastTimer;
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2600);}
+
+/* who is free for a given job */
+function classify(job){
+  const g={matched:[],partial:[],off:[]};
+  S.staff.forEach(s=>{
+    const w=(S.avail[s.id]||[]).filter(x=>x.date===job.date);
+    if(!w.length){g.off.push({s,label:"",note:""});return;}
+    const label=w.map(x=>`${fmtTime(x.start)}–${fmtTime(x.end)}`).join(", ");
+    const note=w.map(x=>x.note).filter(Boolean).join("; ");
+    const covers=w.some(x=>toMin(x.start)<=toMin(job.start)&&toMin(x.end)>=toMin(job.end));
+    (covers?g.matched:g.partial).push({s,label,note});
+  });
+  return g;
+}
+
+/* ------------------------------------------------------------------ nav */
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current","false"));
+  b.setAttribute("aria-current","true");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+  $("view-"+b.dataset.view).classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(b.dataset.view==="roster")renderRoster();
+  if(b.dataset.view==="dashboard")renderCalendar();
+  if(b.dataset.view==="staff")renderStaffForm();
+}));
+$("reset").addEventListener("click",()=>{S=seed();renderAll();toast("Back to the sample week");});
+
+/* ============================================== 1. CREW AVAILABILITY FORM */
+function renderStaffForm(){
+  const sel=$("sa-who");
+  if(!sel.options.length){
+    S.staff.forEach(s=>{const o=document.createElement("option");o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+    sel.addEventListener("change",()=>{S.who=+sel.value;renderStaffForm();});
+  }
+  sel.value=S.who;
+  $("sa-name").textContent=nameOf(S.who);
+  $("sa-notes").value=S.notes[S.who]||"";
+  $("sa-saved").style.display="none";
+
+  const mine=S.avail[S.who]||[];
+  $("sa-days").innerHTML=Array.from({length:7},(_,i)=>{
+    const d=D(i),cur=mine.find(x=>x.date===d),on=!!cur;
+    return `<div class="day ${on?"on":""}" data-d="${d}">
+      <div class="day-head">
+        <input type="checkbox" id="c-${d}" ${on?"checked":""} />
+        <label for="c-${d}">${DAY_FULL[i]}<span class="date">${parse(d).getDate()} ${MON3[parse(d).getMonth()]}</span></label>
+      </div>
+      <div class="times">
+        <div class="row">
+          <div class="fld"><label>Available from</label><input type="time" class="t-start" value="${cur?cur.start:"09:00"}" /></div>
+          <div class="fld"><label>Until</label><input type="time" class="t-end" value="${cur?cur.end:"17:00"}" /></div>
+        </div>
+        <div style="margin-top:.5rem"><label>Remarks (optional)</label>
+          <input type="text" class="t-note" value="${esc(cur?cur.note:"")}" placeholder="e.g. can start earlier" /></div>
+      </div></div>`;
+  }).join("");
+
+  $("sa-days").querySelectorAll('input[type=checkbox]').forEach(cb=>
+    cb.addEventListener("change",e=>e.target.closest(".day").classList.toggle("on",e.target.checked)));
+}
+$("sa-save").addEventListener("click",()=>{
+  const out=[];let bad=false;
+  $("sa-days").querySelectorAll(".day").forEach(card=>{
+    if(!card.querySelector("input[type=checkbox]").checked)return;
+    const start=card.querySelector(".t-start").value,end=card.querySelector(".t-end").value;
+    if(!start||!end||toMin(start)>=toMin(end)){bad=true;return;}
+    out.push({date:card.dataset.d,start,end,note:card.querySelector(".t-note").value.trim()});
+  });
+  if(bad){toast("On every day you tick, “until” must be later than “from”.");return;}
+  S.avail[S.who]=out;
+  S.notes[S.who]=$("sa-notes").value.trim();
+  $("sa-saved").style.display="block";
+  toast(nameOf(S.who)+"'s hours saved — now open step 3");
+});
+
+/* ==================================================== 2. NEW JOB + CALENDAR */
+function renderServices(){
+  $("j-services").innerHTML=SERVICES.map(([g,items])=>
+    `<div class="svc-group">${esc(g)}</div>`+items.map(([label,value,price])=>
+      `<label class="svc"><input type="checkbox" value="${esc(value)}" data-price="${price==null?0:price}" />
+        <span class="svc-name">${esc(label)}</span>
+        <span class="svc-price">${price==null?"quote":"$"+price}</span></label>`).join("")).join("");
+}
+$("j-services").addEventListener("change",e=>{
+  e.target.closest(".svc").classList.toggle("on",e.target.checked);
+  const on=[...$("j-services").querySelectorAll("input:checked")];
+  let total=0,quoted=0;
+  on.forEach(i=>{const p=+i.dataset.price;p?total+=p:quoted++;});
+  $("j-sum").textContent="$"+total;
+  $("j-count").textContent=on.length
+    ? `${on.length} service${on.length>1?"s":""}${quoted?" · "+quoted+" to be quoted":""}`
+    : "Nothing selected";
+});
+
+$("j-create").addEventListener("click",()=>{
+  const client=$("j-client").value.trim(),addr=$("j-addr").value.trim(),date=$("j-date").value;
+  const st=$("j-start").value,en=$("j-end").value;
+  if(!client||!addr||!date){toast("Client name, address and date are needed");return;}
+  if(!st||!en||toMin(st)>=toMin(en)){toast("End time must be later than start time");return;}
+  const services=[...$("j-services").querySelectorAll("input:checked")].map(i=>i.value);
+  S.jobs.push({id:++S.nextId,client,phone:$("j-phone").value.trim(),services,address:addr,
+    date,start:st,end:en,need:Math.max(1,+$("j-need").value||1),
+    notes:$("j-notes").value.trim(),crew:[],lead:null,cancelled:false});
+  S.week=iso(mondayOf(parse(date)));
+  S.month={y:parse(date).getFullYear(),m:parse(date).getMonth()};
+  ["j-client","j-phone","j-addr","j-notes"].forEach(i=>$(i).value="");
+  $("j-services").querySelectorAll("input:checked").forEach(i=>{i.checked=false;i.closest(".svc").classList.remove("on");});
+  $("j-sum").textContent="$0";$("j-count").textContent="Nothing selected";
+  renderCalendar();renderRoster();
+  toast(`${client} added — open step 3 to assign the crew`);
+});
+
+function stateOf(j){
+  if(j.cancelled)return"cancelled";
+  if(!j.crew.length)return"unassigned";
+  return j.crew.length<j.need?"short":"confirmed";
+}
+function renderCalendar(){
+  const {y,m}=S.month;
+  $("cal-label").textContent=`${MONF[m]} ${y}`;
+  const first=mondayOf(new Date(y,m,1));
+  const weeks=[];let cur=new Date(first);
+  while(cur<=new Date(y,m+1,0)||weeks.length<1||cur.getDay()!==1){
+    const row=[];for(let i=0;i<7;i++){row.push(new Date(cur));cur=addDays(cur,1);}
+    weeks.push(row);
+    if(cur>new Date(y,m+1,0))break;
+  }
+  const totals={confirmed:0,short:0,unassigned:0,cancelled:0};
+  $("cal-body").innerHTML=weeks.map(row=>"<tr>"+row.map(d=>{
+    const key=iso(d),inM=d.getMonth()===m;
+    const jobs=S.jobs.filter(j=>j.date===key).sort((a,b)=>toMin(a.start)-toMin(b.start));
+    if(inM)jobs.forEach(j=>totals[stateOf(j)]++);
+    return `<td class="${inM?"":"outside"}${key===iso(TODAY)?" today":""}">
+      <div class="daynum">${d.getDate()}</div>${jobs.map(j=>{
+        const st=stateOf(j),crew=orderedCrew(j).join(", ");
+        return `<div class="ev ${st}" title="${esc(j.client)} · ${j.start}–${j.end}${j.address?" · "+esc(j.address):""}">
+          <div class="evtop"><span class="evtime">${j.start}</span><span class="evtitle">${esc(title(j))}</span></div>
+          ${st==="cancelled"?'<div class="evtag">Cancelled</div>'
+            :crew?`<div class="evcrew">${esc(crew)}${j.crew.length<j.need?` (${j.crew.length}/${j.need})`:""}</div>`
+            :'<div class="evcrew"><em>No crew yet</em></div>'}</div>`;}).join("")}</td>`;
+  }).join("")+"</tr>").join("");
+  $("cal-totals").textContent=`This month: ${totals.confirmed} fully staffed · ${totals.short} short · `
+    +`${totals.unassigned} unassigned · ${totals.cancelled} cancelled`;
+}
+const orderedCrew=j=>{const lead=j.lead?nameOf(j.lead):"";
+  const rest=j.crew.filter(id=>id!==j.lead).map(nameOf);return lead?[lead,...rest]:rest;};
+$("cal-prev").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m-1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
+$("cal-next").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m+1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
+
+/* ================================================== 3. ROSTER / ASSIGN CREW */
+function renderRoster(){
+  const a=parse(S.week),b=addDays(a,6);
+  $("wk-label").textContent=`${a.getDate()} ${MON3[a.getMonth()]} – ${b.getDate()} ${MON3[b.getMonth()]} ${b.getFullYear()}`;
+
+  const submitted=S.staff.filter(s=>(S.avail[s.id]||[]).some(w=>w.date>=S.week&&w.date<=iso(b)));
+  $("r-availnote").innerHTML=submitted.length===S.staff.length
+    ? `<div class="ok">All ${S.staff.length} crew members have submitted for this week.</div>`
+    : `<div class="warn">${submitted.length} of ${S.staff.length} crew members have submitted. You can still
+       assign anyone — people who have not replied are dimmed.</div>`;
+  $("r-avail").innerHTML=S.staff.map(s=>{
+    const w=(S.avail[s.id]||[]).filter(x=>x.date>=S.week&&x.date<=iso(b))
+      .sort((p,q)=>p.date.localeCompare(q.date));
+    return `<tr><td><strong>${esc(s.name)}</strong><br />
+      <span class="pill ${w.length?"yes":"none"}">${w.length?"Submitted":"Not submitted"}</span></td>
+      <td>${w.length?w.map(x=>`<span class="slot">${parse(x.date).getDate()}/${parse(x.date).getMonth()+1}
+        · ${x.start}–${x.end}${x.note?` <em>— ${esc(x.note)}</em>`:""}</span>`).join("")
+        :'<span class="hint">—</span>'}
+        ${S.notes[s.id]?`<span class="slot"><em>Note: ${esc(S.notes[s.id])}</em></span>`:""}</td></tr>`;
+  }).join("");
+
+  const jobs=weekJobs();
+  $("r-jobs").innerHTML=jobs.length?jobs.map(j=>{
+    const g=classify(j),p=priceOf(j);
+    const chips=(list,cls,heading)=>list.length?`<div class="grouplabel">${heading}</div><div class="crew">`
+      +list.map(e=>`<label class="${cls}" title="${e.label?"Available "+esc(e.label):"Did not mark this day available"}${e.note?" — "+esc(e.note):""}">
+          <input type="checkbox" data-job="${j.id}" value="${e.s.id}" ${j.crew.includes(e.s.id)?"checked":""} />
+          ${esc(e.s.name)}${e.label?` <span class="win">${esc(e.label)}</span>`:""}</label>`).join("")+"</div>":"";
+    return `<div class="job ${j.cancelled?"cancelled":""}" data-job="${j.id}">
+      <h4>${DAY_FULL[dayIdx(j.date)]} · ${parse(j.date).getDate()} ${MON3[parse(j.date).getMonth()]}
+        <span class="ctag">Cancelled</span><span class="count" data-count="${j.id}"></span></h4>
+      <div class="meta">${esc(j.client)}${j.phone?" · "+esc(j.phone):""} · ${j.start}–${j.end}
+        · needs ${j.need} crew member${j.need>1?"s":""}${p?` · <strong>$${p}</strong>`:""}</div>
+      <div class="jobactions">
+        <button class="cancelbtn" data-cancel="${j.id}">${j.cancelled?"Undo cancellation":"Cancel job"}</button>
+        <button class="deletebtn" data-del="${j.id}">Delete</button>
+      </div>
+      <div class="jobbody">
+        <div class="field"><label>Title</label><input type="text" data-title="${j.id}" value="${esc(title(j))}" /></div>
+        <div class="field"><label>Location</label><input type="text" data-addr="${j.id}" value="${esc(j.address)}" /></div>
+        <div class="field"><label>Lead (shown as [Name] and listed first)</label>
+          <select data-lead="${j.id}"><option value="">— none —</option>
+            ${S.staff.map(s=>`<option value="${s.id}" ${j.lead===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}
+          </select></div>
+        ${chips(g.matched,"match","Free for this whole job")}
+        ${chips(g.partial,"partial","Free that day, but not for the full job time")}
+        ${chips(g.off,"off","Not available "+DAY_FULL[dayIdx(j.date)])}
+        <div class="field"><label>Extra note (appears under the crew list)</label>
+          <textarea rows="2" data-note="${j.id}">${esc(j.notes)}</textarea></div>
+      </div></div>`;
+  }).join(""):'<div class="empty">No jobs this week. Add one in step 2.</div>';
+  jobs.forEach(j=>updateCount(j.id));
+}
+function updateCount(id){
+  const j=S.jobs.find(x=>x.id===id);if(!j)return;
+  const el=document.querySelector(`[data-count="${id}"]`);if(!el)return;
+  el.textContent=`${j.crew.length} of ${j.need}`;
+  el.className="count "+(j.crew.length<j.need?"short":j.crew.length>j.need?"over":"full");
+}
+$("r-jobs").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.job){const j=S.jobs.find(x=>x.id===+t.dataset.job);
+    j.crew=t.checked?[...new Set([...j.crew,+t.value])]:j.crew.filter(i=>i!==+t.value);
+    if(!j.crew.includes(j.lead))j.lead=null;
+    updateCount(j.id);renderCalendar();}
+  if(t.dataset.lead){const j=S.jobs.find(x=>x.id===+t.dataset.lead);
+    j.lead=t.value?+t.value:null;
+    if(j.lead&&!j.crew.includes(j.lead)){j.crew.push(j.lead);renderRoster();}
+    renderCalendar();}
+  if(t.dataset.note)S.jobs.find(x=>x.id===+t.dataset.note).notes=t.value;
+  if(t.dataset.addr)S.jobs.find(x=>x.id===+t.dataset.addr).address=t.value;
+});
+$("r-jobs").addEventListener("click",e=>{
+  const c=e.target.dataset.cancel,d=e.target.dataset.del;
+  if(c){const j=S.jobs.find(x=>x.id===+c);j.cancelled=!j.cancelled;renderRoster();renderCalendar();
+    toast(j.cancelled?"Job cancelled — it drops out of the message":"Cancellation undone");}
+  if(d){const j=S.jobs.find(x=>x.id===+d);
+    if(confirm(`Delete "${title(j)}" permanently?\n\nIts crew assignments go too. This cannot be undone.`)){
+      S.jobs=S.jobs.filter(x=>x.id!==+d);renderRoster();renderCalendar();toast("Job deleted");}}
+});
+$("wk-prev").addEventListener("click",()=>{S.week=iso(addDays(parse(S.week),-7));renderRoster();});
+$("wk-next").addEventListener("click",()=>{S.week=iso(addDays(parse(S.week),7));renderRoster();});
+
+$("r-generate").addEventListener("click",()=>{
+  const jobs=weekJobs().filter(j=>!j.cancelled&&j.crew.length);
+  if(!jobs.length){toast("Tick at least one crew member first");return;}
+  const out=[];let cur=null;
+  jobs.forEach(j=>{
+    if(j.date!==cur){cur=j.date;out.push(`*${DAY_FULL[dayIdx(j.date)]}*`);}
+    const t=(document.querySelector(`[data-title="${j.id}"]`)||{}).value||title(j);
+    const ad=(document.querySelector(`[data-addr="${j.id}"]`)||{}).value||j.address;
+    const lead=j.lead?nameOf(j.lead):"";
+    const lines=[lead?`[${lead}] ${t}`:t,
+      `Scheduled: ${fmtDate(j.date)} at ${fmtTime(j.start)} to ${fmtTime(j.end)}, SGT`];
+    if(ad)lines.push(`Location: ${ad}`);
+    orderedCrew(j).forEach((n,i)=>lines.push(`${i+1}. ${n}`));
+    let block=lines.join("\n");
+    if(j.notes.trim())block+="\n\n"+j.notes.trim();
+    out.push(block);
+  });
+  const text=out.join("\n\n");
+  $("r-out").innerHTML=`<p class="hint">Edit anything before copying — this box is free text.</p>
+    <textarea class="out" id="msg"></textarea>
+    <button class="primary" style="margin-top:.6rem" id="copy">Copy to clipboard</button>
+    <span class="hint" id="copied" style="margin-left:.6rem"></span>`;
+  $("msg").value=text;
+  $("copy").addEventListener("click",()=>{
+    navigator.clipboard.writeText($("msg").value).then(()=>{
+      $("copied").textContent="Copied — paste it into the WhatsApp group.";
+      setTimeout(()=>$("copied").textContent="",3000);
+    },()=>{$("msg").select();$("copied").textContent="Press Ctrl+C to copy.";});
+  });
+  $("r-out").scrollIntoView({behavior:"smooth",block:"nearest"});
+  toast("Message ready");
+});
+
+/* ------------------------------------------------------------------ boot */
+function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();}
+$("j-date").value=D(2);
+renderAll();
+</script>
+</body>
+</html>
