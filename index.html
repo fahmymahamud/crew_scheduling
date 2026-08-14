@@ -366,13 +366,14 @@
   </div>
 </div>
 
-<!-- ============ SIGN-IN SCREEN ============ -->
-<div id="auth-gate" class="modal-backdrop" style="display:flex;align-items:center">
-  <div class="modal" style="max-width:400px;text-align:center">
-    <div style="font-weight:800;letter-spacing:.06em;color:var(--ink);font-size:1.1rem;margin-bottom:.3rem">CREW <span style="color:var(--brand)">SCHEDULING</span></div>
-    <p class="hint" style="margin:.4rem 0 1.2rem">Please sign in with Google to continue.</p>
+<!-- ============ LANDING / SIGN-IN SCREEN ============ -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:linear-gradient(160deg,#0B2B2E,#14666E)">
+  <div style="background:#fff;border-radius:16px;max-width:400px;width:100%;padding:2.2rem 1.75rem;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35)">
+    <img src="logo.jfif" alt="M CLEAN" style="width:130px;height:130px;border-radius:50%;object-fit:cover;margin-bottom:1rem" />
+    <p style="color:#6b7280;font-size:.92rem;margin:0 0 1.5rem;line-height:1.5">Crew scheduling &mdash; availability, jobs and rosters in one place.</p>
     <button class="primary" id="google-signin" style="width:100%">Sign in with Google</button>
     <p class="hint" id="auth-msg" style="margin-top:1rem"></p>
+    <p class="hint" style="margin-top:.9rem;font-size:.78rem">Crew: use the Google email your manager registered for you.</p>
   </div>
 </div>
 
