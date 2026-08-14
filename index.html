@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crew Scheduling — interactive demo</title>
+<title>Crew Scheduling</title>
 <style>
   :root{
     --brand:#2E9BA4; --brand-deep:#14666E; --ink:#0B2B2E;
@@ -192,9 +192,9 @@
 <div class="bar">
   <div class="logo">CREW <span>SCHEDULING</span></div>
   <nav>
-    <button data-view="staff" aria-current="false">1 &middot; Crew update availability</button>
-    <button data-view="dashboard" aria-current="true">2 &middot; Office posts a job</button>
-    <button data-view="roster" aria-current="false">3 &middot; Assign crews &amp; send</button>
+    <button data-view="staff" aria-current="false">1 &middot; Availability Form</button>
+    <button data-view="dashboard" aria-current="true">2 &middot; Calendar & Job Form </button>
+    <button data-view="roster" aria-current="false">3 &middot; Assignment &amp; send</button>
     <button data-view="crew" aria-current="false">Technicians</button>
   </nav>
   <button class="reset" id="reset">Start over</button>
@@ -203,8 +203,8 @@
 </div>
 
 <div class="demonote">
-  <strong>Interactive demo.</strong> Everything here works &mdash; create a job, assign a crew, generate
-  the WhatsApp message. Changes are now saved to your Supabase database and shared across devices.
+  <strong>Crew Scheduling App</strong> Create a job, assign a crew, generate
+  the message. Changes are now saved to your Supabase database and shared across devices.
   <span id="db-status" style="display:block;margin-top:.35rem;font-weight:700">Starting…</span>
 </div>
 
@@ -448,45 +448,45 @@ function saveState(){
 /* ------------------------------------------------------------------ data */
 const SERVICES = [
   ["Home cleaning — standard", [
-    ["Studio / 1 Bedroom","Studio / 1 Bedroom Standard Cleaning",300],
-    ["2 Bedroom","2 Bedroom Standard Cleaning",400],
-    ["3 Bedroom","3 Bedroom Standard Cleaning",480],
-    ["4 Bedroom","4 Bedroom Standard Cleaning",540],
-    ["Large / Landed","Large / Landed Standard Cleaning",680]]],
+    ["Studio / 2-Room HDB","Studio / 2-Room HDB Standard Cleaning",350],
+    ["3-Room HDB","3-Room HDB Standard Cleaning",420],
+    ["4-Room HDB","4-Room HDB Standard Cleaning",490],
+    ["5-Room HDB","5-Room HDB Standard Cleaning",550],
+    ["EA / EM","EA / EM Standard Cleaning",690]]],
   ["Home cleaning — with floor deep cleaning", [
-    ["Studio / 1 Bedroom","Studio / 1 Bedroom Cleaning + FDC",460],
-    ["2 Bedroom","2 Bedroom Cleaning + FDC",540],
-    ["3 Bedroom","3 Bedroom Cleaning + FDC",640],
-    ["4 Bedroom","4 Bedroom Cleaning + FDC",740],
-    ["Large / Landed","Large / Landed Cleaning + FDC",860]]],
+    ["Studio / 2-Room HDB","Studio / 2-Room HDB Cleaning + FDC",480],
+    ["3-Room HDB","3-Room HDB Cleaning + FDC",550],
+    ["4-Room HDB","4-Room HDB Cleaning + FDC",650],
+    ["5-Room HDB","5-Room HDB Cleaning + FDC",750],
+    ["EA / EM","EA / EM Cleaning + FDC",880]]],
   ["Sofa deep cleaning (incl. leather)", [
-    ["1 Seater","1 Seater Sofa Deep Cleaning",60],
+    ["1 Seater","1 Seater Sofa Deep Cleaning",70],
     ["2 Seater","2 Seater Sofa Deep Cleaning",80],
-    ["3 Seater","3 Seater Sofa Deep Cleaning",100],
+    ["3 Seater","3 Seater Sofa Deep Cleaning",90],
     ["Other size","Sofa Deep Cleaning (other size)",null]]],
   ["Mattress deep cleaning", [
-    ["Single / Super Single","Single / Super Single Mattress Deep Cleaning",60],
-    ["Queen / King","Queen / King Mattress Deep Cleaning",100],
-    ["Bed Frame + Headboard","Bed Frame + Headboard Deep Cleaning",60]]],
+    ["Single / Super Single","Single / Super Single Mattress Deep Cleaning",70],
+    ["Queen / King","Queen / King Mattress Deep Cleaning",90],
+    ["Bed Frame + Headboard","Bed Frame + Headboard Deep Cleaning",50]]],
   ["Chair deep cleaning", [
-    ["Dining Chairs, up to 6","Dining Chairs Deep Cleaning (up to 6)",80],
-    ["Gaming / Office Chair","Gaming / Office Chair Deep Cleaning",60]]],
+    ["Dining Chairs, up to 6","Dining Chairs Deep Cleaning (up to 6)",70],
+    ["Gaming / Office Chair","Gaming / Office Chair Deep Cleaning",70]]],
   ["Rug / carpet deep cleaning", [
-    ["Small, 120x190cm","Small Rug / Carpet Deep Cleaning",60],
-    ["Medium, 170x240cm","Medium Rug / Carpet Deep Cleaning",100],
-    ["Large, up to 300x400cm","Large Rug / Carpet Deep Cleaning",140]]],
+    ["Small, 120x190cm","Small Rug / Carpet Deep Cleaning",70],
+    ["Medium, 170x240cm","Medium Rug / Carpet Deep Cleaning",90],
+    ["Large, up to 300x400cm","Large Rug / Carpet Deep Cleaning",120]]],
   ["Baby equipment", [
-    ["Baby Cot","Baby Cot Deep Cleaning",40],
-    ["Single Stroller","Single Stroller Deep Cleaning",60],
-    ["Double Stroller","Double Stroller Deep Cleaning",100],
-    ["Car Seat","Car Seat Deep Cleaning",60]]],
+    ["Baby Cot","Baby Cot Deep Cleaning",30],
+    ["Single Stroller","Single Stroller Deep Cleaning",70],
+    ["Double Stroller","Double Stroller Deep Cleaning",90],
+    ["Car Seat","Car Seat Deep Cleaning",50]]],
   ["Curtain cleaning", [
-    ["Blackout, per set","Blackout Curtain Cleaning",60],
-    ["Day + Night, per set","Day + Night Curtain Cleaning",90]]],
+    ["Blackout, per set","Blackout Curtain Cleaning",70],
+    ["Day + Night, per set","Day + Night Curtain Cleaning",80]]],
   ["Add-ons", [
-    ["Formaldehyde Treatment","Formaldehyde Treatment",160],
-    ["Vinyl Coating","Vinyl Coating",160],
-    ["Antimicrobial Treatment","Antimicrobial Treatment",20]]]
+    ["Formaldehyde Treatment","Formaldehyde Treatment",150],
+   ["Vinyl Coating","Vinyl Coating",150],
+    ["Antimicrobial Treatment","Antimicrobial Treatment",10]]]
 ];
 const PRICE = {}; SERVICES.forEach(g=>g[1].forEach(([,v,p])=>PRICE[v]=p));
 
