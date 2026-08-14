@@ -175,6 +175,39 @@
          opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
   @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+  /* ---- week navigator (crew form) ---- */
+  .wknav{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:center;margin:.5rem 0}
+  .wknav button{background:#f3f4f6;border:1px solid var(--line);color:#374151;border-radius:8px;
+                padding:.4rem .7rem;font-size:.85rem;cursor:pointer}
+  .wknav button:hover{background:#e5e7eb}
+  .wknav strong{font-size:.88rem;min-width:9.5rem;text-align:center}
+
+  /* ---- clickable calendar ---- */
+  table.cal td[data-day]{cursor:pointer}
+  table.cal td[data-day]:hover{background:#eef2ff}
+  .ev[data-eventjob]{cursor:pointer}
+  .ev[data-eventjob]:hover{outline:1px solid #c7d2fe}
+
+  /* ---- day detail modal ---- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(11,43,46,.45);z-index:60;
+                  display:flex;align-items:flex-start;justify-content:center;padding:4rem 1rem}
+  .modal{background:#fff;border-radius:14px;max-width:560px;width:100%;padding:1.25rem;
+         box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:82vh;overflow-y:auto}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;gap:1rem}
+  .dm-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:0 .3rem}
+  .dm-job{border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:.7rem .8rem;
+          margin-bottom:.6rem;cursor:pointer}
+  .dm-job:hover{background:#f8fbff;border-color:#93c5fd}
+  .dm-job.confirmed{border-left-color:#059669}
+  .dm-job.short{border-left-color:#d97706}
+  .dm-job.unassigned{border-left-color:#9ca3af}
+  .dm-job.cancelled{border-left-color:#e5e7eb;opacity:.6}
+  .dm-job-top{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem}
+  .dm-arrow{color:#2563eb;font-size:.78rem;margin-top:.35rem}
+
+  /* ---- job editor ---- */
+  .je-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem}
 </style>
 </head>
 <body>
@@ -208,6 +241,14 @@
       <select id="sa-who"></select>
     </div>
     <div id="sa-saved" class="ok" style="display:none">Saved. The office can see your hours now.</div>
+    <div class="wknav">
+      <button type="button" id="sa-prevmonth" title="Jump back one month">&laquo;</button>
+      <button type="button" id="sa-prevweek">&lsaquo; Prev</button>
+      <strong id="sa-weeklabel"></strong>
+      <button type="button" id="sa-nextweek">Next &rsaquo;</button>
+      <button type="button" id="sa-nextmonth" title="Jump forward one month">&raquo;</button>
+    </div>
+    <p class="hint" style="text-align:center;margin:0 0 .6rem">Pick a week above, tick your days, then press Save. You can save each week separately.</p>
     <div id="sa-days"></div>
     <div class="field">
       <label for="sa-notes">Anything else for the office?</label>
@@ -299,8 +340,29 @@
   </div>
 </section>
 
+<!-- ============ JOB EDITOR (opened from the calendar) ============ -->
+<section class="view" id="view-jobedit">
+  <div class="panel" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <button class="ghost" id="je-back">&larr; Back to calendar</button>
+    <strong>Edit job</strong>
+  </div>
+  <div class="panel"><div id="je-body"></div></div>
+</section>
+
 </main>
 <div class="toast" id="toast"></div>
+
+<!-- ============ DAY DETAIL POPUP ============ -->
+<div id="day-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <strong id="dm-title"></strong>
+      <button id="dm-close" class="dm-close" title="Close">&times;</button>
+    </div>
+    <div id="dm-body"></div>
+    <button class="ghost" id="dm-add" style="margin-top:.6rem">+ Add a job on this date</button>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -476,7 +538,7 @@ function seed(){
   const notes={1:"Prefer north side jobs",8:"Has own transport"};
   let n=0;
   const mk=(c,ph,sv,ad,dt,st,en,need,nt)=>({
-    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,end:en,
+    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,en,end:en,
     need:need,notes:nt||"",crew:[],lead:null,cancelled:false});
   const jobs=[
     mk("Client A","+6580000001",["3 Bedroom Cleaning + FDC","Formaldehyde Treatment"],
@@ -491,7 +553,7 @@ function seed(){
        "9 Parkview Ave #03-15",D(4),"09:00","17:00",3,"Post-renovation. Heavy dust.")
   ];
   jobs[0].crew=[1,3]; jobs[0].lead=1;          // one already staffed, so the calendar is not empty
-  return {staff,avail,notes,jobs,nextId:n,week:iso(WEEK0),month:{y:TODAY.getFullYear(),m:TODAY.getMonth()},who:1};
+  return {staff,avail,notes,jobs,nextId:n,week:iso(WEEK0),staffWeek:iso(WEEK0),month:{y:TODAY.getFullYear(),m:TODAY.getMonth()},who:1};
 }
 let S=seed();
 
@@ -546,10 +608,14 @@ function renderStaffForm(){
   $("sa-name").textContent=nameOf(S.who);
   $("sa-notes").value=S.notes[S.who]||"";
   $("sa-saved").style.display="none";
+  if(!S.staffWeek) S.staffWeek=iso(mondayOf(TODAY));
+  const wa=parse(S.staffWeek), wb=addDays(wa,6);
+  $("sa-weeklabel").textContent=`${wa.getDate()} ${MON3[wa.getMonth()]} – ${wb.getDate()} ${MON3[wb.getMonth()]} ${wb.getFullYear()}`;
 
   const mine=S.avail[S.who]||[];
+  const base=parse(S.staffWeek);
   $("sa-days").innerHTML=Array.from({length:7},(_,i)=>{
-    const d=D(i),cur=mine.find(x=>x.date===d),on=!!cur;
+    const d=iso(addDays(base,i)),cur=mine.find(x=>x.date===d),on=!!cur;
     return `<div class="day ${on?"on":""}" data-d="${d}">
       <div class="day-head">
         <input type="checkbox" id="c-${d}" ${on?"checked":""} />
@@ -577,12 +643,21 @@ $("sa-save").addEventListener("click",()=>{
     out.push({date:card.dataset.d,start,end,note:card.querySelector(".t-note").value.trim()});
   });
   if(bad){toast("On every day you tick, “until” must be later than “from”.");return;}
-  S.avail[S.who]=out;
+  // Merge: keep availability the crew saved for OTHER weeks, replace only this week's days.
+  const weekDates=Array.from({length:7},(_,i)=>iso(addDays(parse(S.staffWeek),i)));
+  const kept=(S.avail[S.who]||[]).filter(x=>!weekDates.includes(x.date));
+  S.avail[S.who]=kept.concat(out).sort((a,b)=>a.date.localeCompare(b.date));
   S.notes[S.who]=$("sa-notes").value.trim();
   saveState();
   $("sa-saved").style.display="block";
-  toast(nameOf(S.who)+"'s hours saved — now open step 3");
+  toast(nameOf(S.who)+"'s hours saved for this week");
 });
+function shiftStaffWeek(days){ S.staffWeek=iso(addDays(parse(S.staffWeek),days)); renderStaffForm(); }
+function shiftStaffMonth(delta){ const d=parse(S.staffWeek); S.staffWeek=iso(mondayOf(new Date(d.getFullYear(),d.getMonth()+delta,d.getDate()))); renderStaffForm(); }
+$("sa-prevweek").addEventListener("click",()=>shiftStaffWeek(-7));
+$("sa-nextweek").addEventListener("click",()=>shiftStaffWeek(7));
+$("sa-prevmonth").addEventListener("click",()=>shiftStaffMonth(-1));
+$("sa-nextmonth").addEventListener("click",()=>shiftStaffMonth(1));
 
 /* ==================================================== 2. NEW JOB + CALENDAR */
 function renderServices(){
@@ -642,10 +717,10 @@ function renderCalendar(){
     const key=iso(d),inM=d.getMonth()===m;
     const jobs=S.jobs.filter(j=>j.date===key).sort((a,b)=>toMin(a.start)-toMin(b.start));
     if(inM)jobs.forEach(j=>totals[stateOf(j)]++);
-    return `<td class="${inM?"":"outside"}${key===iso(TODAY)?" today":""}">
+    return `<td class="${inM?"":"outside"}${key===iso(TODAY)?" today":""}" data-day="${key}">
       <div class="daynum">${d.getDate()}</div>${jobs.map(j=>{
         const st=stateOf(j),crew=orderedCrew(j).join(", ");
-        return `<div class="ev ${st}" title="${esc(j.client)} · ${j.start}–${j.end}${j.address?" · "+esc(j.address):""}">
+        return `<div class="ev ${st}" data-eventjob="${j.id}" title="${esc(j.client)} · ${j.start}–${j.end}${j.address?" · "+esc(j.address):""}">
           <div class="evtop"><span class="evtime">${j.start}</span><span class="evtitle">${esc(title(j))}</span></div>
           ${st==="cancelled"?'<div class="evtag">Cancelled</div>'
             :crew?`<div class="evcrew">${esc(crew)}${j.crew.length<j.need?` (${j.crew.length}/${j.need})`:""}</div>`
@@ -658,6 +733,12 @@ const orderedCrew=j=>{const lead=j.lead?nameOf(j.lead):"";
   const rest=j.crew.filter(id=>id!==j.lead).map(nameOf);return lead?[lead,...rest]:rest;};
 $("cal-prev").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m-1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
 $("cal-next").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m+1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
+$("cal-body").addEventListener("click",e=>{
+  const ev=e.target.closest("[data-eventjob]");
+  if(ev){ openJobEditor(+ev.dataset.eventjob); return; }   // clicked a job → edit it
+  const td=e.target.closest("[data-day]");
+  if(td) openDayModal(td.dataset.day);                     // clicked a date → see that day's jobs
+});
 
 /* ================================================== 3. ROSTER / ASSIGN CREW */
 function renderRoster(){
@@ -775,6 +856,132 @@ $("r-generate").addEventListener("click",()=>{
   $("r-out").scrollIntoView({behavior:"smooth",block:"nearest"});
   toast("Message ready");
 });
+
+/* ============================ DAY DETAIL POPUP ============================ */
+function openDayModal(date){
+  const jobs=S.jobs.filter(j=>j.date===date).sort((a,b)=>toMin(a.start)-toMin(b.start));
+  $("dm-title").textContent=`${DAY_FULL[dayIdx(date)]} · ${fmtDate(date)}`;
+  $("dm-add").dataset.date=date;
+  $("dm-body").innerHTML=jobs.length?jobs.map(j=>{
+    const st=stateOf(j),crew=orderedCrew(j).join(", "),p=priceOf(j);
+    return `<div class="dm-job ${st}" data-openjob="${j.id}">
+      <div class="dm-job-top"><span class="evtime">${j.start}–${j.end}</span>
+        <strong>${esc(title(j))}</strong>${p?` <span class="hint">$${p}</span>`:""}</div>
+      <div class="meta">${esc(j.client)}${j.phone?" · "+esc(j.phone):""}${j.address?" · "+esc(j.address):""}</div>
+      <div class="evcrew">${st==="cancelled"?"Cancelled":(crew?esc(crew):"<em>No crew yet</em>")+` (${j.crew.length}/${j.need})`}</div>
+      <div class="dm-arrow">Click to open &amp; edit &rarr;</div></div>`;
+  }).join(""):'<div class="empty">No jobs on this date yet.</div>';
+  $("day-modal").style.display="flex";
+}
+function closeDayModal(){ $("day-modal").style.display="none"; }
+$("dm-close").addEventListener("click",closeDayModal);
+$("day-modal").addEventListener("click",e=>{ if(e.target.id==="day-modal") closeDayModal(); });
+$("dm-body").addEventListener("click",e=>{
+  const c=e.target.closest("[data-openjob]");
+  if(c) openJobEditor(+c.dataset.openjob);
+});
+$("dm-add").addEventListener("click",e=>{
+  const date=e.target.dataset.date;
+  closeDayModal(); goToView("dashboard");
+  $("j-date").value=date; $("j-client").focus();
+  toast("New job date set — fill the details, then press Create job");
+});
+
+/* ============================ JOB EDITOR ============================ */
+let editingId=null;
+function goToView(name){
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current", x.dataset.view===name?"true":"false"));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+  $("view-"+name).classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function openJobEditor(id){
+  editingId=id; closeDayModal();
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current","false"));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+  $("view-jobedit").classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+  renderJobEditor();
+}
+function backToCalendar(){
+  const j=S.jobs.find(x=>x.id===editingId);
+  if(j) S.month={y:parse(j.date).getFullYear(),m:parse(j.date).getMonth()};
+  editingId=null;
+  goToView("dashboard"); renderCalendar();
+}
+$("je-back").addEventListener("click",backToCalendar);
+
+function renderJobEditor(){
+  const j=S.jobs.find(x=>x.id===editingId);
+  if(!j){ backToCalendar(); return; }
+  const g=classify(j);
+  const svc=SERVICES.map(([grp,items])=>`<div class="svc-group">${esc(grp)}</div>`+
+    items.map(([label,value,price])=>`<label class="svc ${j.services.includes(value)?"on":""}">
+      <input type="checkbox" class="je-svc" value="${esc(value)}" ${j.services.includes(value)?"checked":""} />
+      <span class="svc-name">${esc(label)}</span>
+      <span class="svc-price">${price==null?"quote":"$"+price}</span></label>`).join("")).join("");
+  const chips=(list,cls,heading)=>list.length?`<div class="grouplabel">${heading}</div><div class="crew">`+
+    list.map(e=>`<label class="${cls}" title="${e.label?"Available "+esc(e.label):"Did not mark this day available"}">
+      <input type="checkbox" class="je-crew" value="${e.s.id}" ${j.crew.includes(e.s.id)?"checked":""} />
+      ${esc(e.s.name)}${e.label?` <span class="win">${esc(e.label)}</span>`:""}</label>`).join("")+"</div>":"";
+  $("je-body").innerHTML=`
+    ${j.cancelled?'<div class="warn">This job is cancelled — it is left out of the WhatsApp message.</div>':""}
+    <div class="pair">
+      <div><label>Client name</label><input type="text" id="je-client" value="${esc(j.client)}" /></div>
+      <div><label>Client phone</label><input type="text" id="je-phone" value="${esc(j.phone)}" /></div>
+    </div>
+    <div class="field"><label>Address</label><input type="text" id="je-addr" value="${esc(j.address)}" /></div>
+    <div class="field"><label>Date</label><input type="date" id="je-date" value="${j.date}" /></div>
+    <div class="pair">
+      <div><label>Start time</label><input type="time" id="je-start" value="${j.start}" /></div>
+      <div><label>End time</label><input type="time" id="je-end" value="${j.end}" /></div>
+    </div>
+    <div class="pair narrow" style="margin-top:.6rem">
+      <div><label>Crew members needed</label><input type="number" id="je-need" min="1" value="${j.need}" /></div>
+      <div><label>Remarks</label><input type="text" id="je-notes" value="${esc(j.notes)}" /></div>
+    </div>
+    <h3>Services</h3>
+    <div class="services" id="je-services">${svc}</div>
+    <h3>Lead <span class="hint" style="font-weight:400">— shown as [Name] and listed first</span></h3>
+    <select id="je-lead"><option value="">— none —</option>
+      ${S.staff.map(s=>`<option value="${s.id}" ${j.lead===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select>
+    <h3>Assign crew</h3>
+    ${chips(g.matched,"match","Free for this whole job")}
+    ${chips(g.partial,"partial","Free that day, but not for the full job time")}
+    ${chips(g.off,"off","Not available "+DAY_FULL[dayIdx(j.date)])}
+    <div class="je-actions">
+      <button class="primary" id="je-save">Save changes</button>
+      <button class="cancelbtn" id="je-cancel">${j.cancelled?"Undo cancellation":"Cancel job"}</button>
+      <button class="deletebtn" id="je-delete">Delete job</button>
+    </div>`;
+  $("je-services").addEventListener("change",e=>{ const l=e.target.closest(".svc"); if(l) l.classList.toggle("on",e.target.checked); });
+  $("je-save").addEventListener("click",saveJobEditor);
+  $("je-cancel").addEventListener("click",()=>{ j.cancelled=!j.cancelled; saveState(); renderJobEditor(); toast(j.cancelled?"Job cancelled":"Cancellation undone"); });
+  $("je-delete").addEventListener("click",()=>{
+    if(confirm(`Delete "${title(j)}" permanently?\n\nThis cannot be undone.`)){
+      S.jobs=S.jobs.filter(x=>x.id!==j.id); saveState(); toast("Job deleted"); backToCalendar();
+    }
+  });
+}
+function saveJobEditor(){
+  const j=S.jobs.find(x=>x.id===editingId); if(!j) return;
+  const client=$("je-client").value.trim(), addr=$("je-addr").value.trim(), date=$("je-date").value;
+  const st=$("je-start").value, en=$("je-end").value;
+  if(!client||!addr||!date){ toast("Client name, address and date are needed"); return; }
+  if(!st||!en||toMin(st)>=toMin(en)){ toast("End time must be later than start time"); return; }
+  j.client=client; j.phone=$("je-phone").value.trim(); j.address=addr;
+  j.date=date; j.start=st; j.end=en;
+  j.need=Math.max(1,+$("je-need").value||1);
+  j.notes=$("je-notes").value.trim();
+  j.services=[...document.querySelectorAll("#je-services .je-svc:checked")].map(i=>i.value);
+  j.crew=[...document.querySelectorAll("#je-body .je-crew:checked")].map(i=>+i.value);
+  let lead=$("je-lead").value?+$("je-lead").value:null;
+  if(lead && !j.crew.includes(lead)) j.crew.push(lead);
+  j.lead=lead;
+  saveState();
+  toast("Job saved");
+  backToCalendar();
+}
 
 /* ------------------------------------------------------------------ boot */
 function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();}
