@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Crew Scheduling — interactive demo</title>
 <style>
-  /* Portfolio demo. The chrome is neutral; the screens inside keep the real
-     app's look, so what a visitor clicks is what the product actually does. */
   :root{
     --brand:#2E9BA4; --brand-deep:#14666E; --ink:#0B2B2E;
     --ground:#f5f7fb; --surface:#fff; --line:#e5e7eb; --muted:#6b7280; --body:#111827;
@@ -14,8 +12,6 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--ground);color:var(--body);
        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-
-  /* ---- demo chrome ---- */
   .bar{background:var(--ink);color:#fff;padding:.85rem 1.25rem;display:flex;
        align-items:center;gap:1.25rem;flex-wrap:wrap;position:sticky;top:0;z-index:20}
   .logo{font-weight:800;letter-spacing:.06em;font-size:1rem}
@@ -31,8 +27,6 @@
             padding:.6rem 1.25rem;font-size:.85rem}
   main{padding:1.5rem 1.25rem 4rem;max-width:1400px;margin:0 auto}
   .view{display:none} .view.on{display:block}
-
-  /* ---- shared app look ---- */
   .panel{background:var(--surface);border-radius:12px;padding:1rem 1.25rem;
          box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:1rem}
   h2{margin:.1rem 0 .75rem;font-size:1.2rem}
@@ -54,8 +48,6 @@
   .cols{display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,1.9fr);
         gap:1rem;align-items:start}
   @media(max-width:980px){.cols{grid-template-columns:1fr}.pair,.pair.narrow{grid-template-columns:1fr}}
-
-  /* ---- service picker ---- */
   .services{border:1px solid #d1d5db;border-radius:8px;max-height:19rem;overflow-y:auto;
             padding:.35rem .5rem;background:#fdfdfe}
   .svc-group{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
@@ -72,8 +64,6 @@
   .total{display:flex;justify-content:space-between;align-items:baseline;
          padding:.7rem .2rem 0;font-size:.9rem;color:#4b5563}
   .total strong{font-size:1.2rem;color:var(--body);font-variant-numeric:tabular-nums}
-
-  /* ---- month calendar ---- */
   .calhead{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
   .calnav{display:flex;align-items:center;gap:.9rem;font-size:.9rem}
   .calnav button{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.9rem;padding:.2rem}
@@ -106,8 +96,6 @@
   .key.short{background:#fffbeb;border-left-color:#d97706}
   .key.unassigned{background:#f3f4f6;border-left-color:#9ca3af}
   .key.cancelled{background:#f9fafb;border-left-color:#e5e7eb;color:#9ca3af;text-decoration:line-through}
-
-  /* ---- roster ---- */
   .job{border:1px solid var(--line);border-radius:10px;padding:.9rem;margin-bottom:.9rem}
   .job h4{margin:0 0 .5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
   .count{float:right;text-transform:none;letter-spacing:0;font-weight:700;border-radius:999px;
@@ -155,8 +143,6 @@
   .pill.none{background:#f3f4f6;color:var(--muted)}
   .slot{display:block;color:#374151}
   .slot em{color:var(--muted);font-style:normal}
-
-  /* ---- crew availability (phone) ---- */
   .phone{max-width:430px;margin:0 auto;background:#fff;border-radius:14px;padding:1.5rem;
          box-shadow:0 8px 24px rgba(0,0,0,.08)}
   .day{border:1px solid var(--line);border-radius:12px;padding:.85rem;margin-bottom:.65rem}
@@ -169,27 +155,20 @@
   .day.on .times{display:block}
   .row{display:flex;gap:.6rem;flex-wrap:wrap}
   .row .fld{flex:1 1 130px}
-
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:1.5rem;background:var(--ink);
          color:#fff;padding:.8rem 1.3rem;border-radius:999px;font-size:.9rem;z-index:50;
          opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
   @media (prefers-reduced-motion:reduce){.toast{transition:none}}
-
-  /* ---- week navigator (crew form) ---- */
   .wknav{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:center;margin:.5rem 0}
   .wknav button{background:#f3f4f6;border:1px solid var(--line);color:#374151;border-radius:8px;
                 padding:.4rem .7rem;font-size:.85rem;cursor:pointer}
   .wknav button:hover{background:#e5e7eb}
   .wknav strong{font-size:.88rem;min-width:9.5rem;text-align:center}
-
-  /* ---- clickable calendar ---- */
   table.cal td[data-day]{cursor:pointer}
   table.cal td[data-day]:hover{background:#eef2ff}
   .ev[data-eventjob]{cursor:pointer}
   .ev[data-eventjob]:hover{outline:1px solid #c7d2fe}
-
-  /* ---- day detail modal ---- */
   .modal-backdrop{position:fixed;inset:0;background:rgba(11,43,46,.45);z-index:60;
                   display:flex;align-items:flex-start;justify-content:center;padding:4rem 1rem}
   .modal{background:#fff;border-radius:14px;max-width:560px;width:100%;padding:1.25rem;
@@ -205,8 +184,6 @@
   .dm-job.cancelled{border-left-color:#e5e7eb;opacity:.6}
   .dm-job-top{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem}
   .dm-arrow{color:#2563eb;font-size:.78rem;margin-top:.35rem}
-
-  /* ---- job editor ---- */
   .je-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem}
 </style>
 </head>
@@ -218,8 +195,11 @@
     <button data-view="staff" aria-current="false">1 &middot; Crew update availability</button>
     <button data-view="dashboard" aria-current="true">2 &middot; Office posts a job</button>
     <button data-view="roster" aria-current="false">3 &middot; Assign crews &amp; send</button>
+    <button data-view="crew" aria-current="false">Technicians</button>
   </nav>
   <button class="reset" id="reset">Start over</button>
+  <span id="whoami" style="display:none;color:#8fa9ab;font-size:.8rem;align-self:center"></span>
+  <button class="reset" id="signout" style="display:none">Sign out</button>
 </div>
 
 <div class="demonote">
@@ -236,25 +216,28 @@
     <h2 style="margin-top:0">Hi <span id="sa-name">Crew 1</span></h2>
     <p class="hint">Tick the days you can work and set your hours. You can come back and change
       this any time.</p>
-    <div class="field">
+    <div class="field" id="sa-who-wrap">
       <label for="sa-who">Pretend to be</label>
       <select id="sa-who"></select>
     </div>
-    <div id="sa-saved" class="ok" style="display:none">Saved. The office can see your hours now.</div>
-    <div class="wknav">
-      <button type="button" id="sa-prevmonth" title="Jump back one month">&laquo;</button>
-      <button type="button" id="sa-prevweek">&lsaquo; Prev</button>
-      <strong id="sa-weeklabel"></strong>
-      <button type="button" id="sa-nextweek">Next &rsaquo;</button>
-      <button type="button" id="sa-nextmonth" title="Jump forward one month">&raquo;</button>
+    <div id="sa-unregistered" class="warn" style="display:none">Your email isn't registered as a technician yet. Please ask your manager to add you on the Technicians page.</div>
+    <div id="sa-formwrap">
+      <div id="sa-saved" class="ok" style="display:none">Saved. The office can see your hours now.</div>
+      <div class="wknav">
+        <button type="button" id="sa-prevmonth" title="Jump back one month">&laquo;</button>
+        <button type="button" id="sa-prevweek">&lsaquo; Prev</button>
+        <strong id="sa-weeklabel"></strong>
+        <button type="button" id="sa-nextweek">Next &rsaquo;</button>
+        <button type="button" id="sa-nextmonth" title="Jump forward one month">&raquo;</button>
+      </div>
+      <p class="hint" style="text-align:center;margin:0 0 .6rem">Pick a week above, tick your days, then press Save. You can save each week separately.</p>
+      <div id="sa-days"></div>
+      <div class="field">
+        <label for="sa-notes">Anything else for the office?</label>
+        <textarea id="sa-notes" rows="2" placeholder="Optional"></textarea>
+      </div>
+      <button class="primary" style="width:100%" id="sa-save">Save my availability</button>
     </div>
-    <p class="hint" style="text-align:center;margin:0 0 .6rem">Pick a week above, tick your days, then press Save. You can save each week separately.</p>
-    <div id="sa-days"></div>
-    <div class="field">
-      <label for="sa-notes">Anything else for the office?</label>
-      <textarea id="sa-notes" rows="2" placeholder="Optional"></textarea>
-    </div>
-    <button class="primary" style="width:100%" id="sa-save">Save my availability</button>
     <p class="hint" style="text-align:center;margin-top:1rem">
       In the real system every crew member opens this from one link shared in the WhatsApp group
       and lands straight on their own name.
@@ -340,6 +323,25 @@
   </div>
 </section>
 
+<!-- ============ TECHNICIANS (management only) ============ -->
+<section class="view" id="view-crew">
+  <div class="panel">
+    <h2>Technicians</h2>
+    <p class="hint">Add each technician's name and the exact Google email they'll sign in with. When they sign in,
+      the availability form locks to their own name. Remove them here when they leave.</p>
+    <div class="pair">
+      <div><label for="cr-name">Name</label><input type="text" id="cr-name" placeholder="Jane Tan" /></div>
+      <div><label for="cr-email">Google email</label><input type="text" id="cr-email" placeholder="jane@gmail.com" /></div>
+    </div>
+    <button class="primary" id="cr-add" style="margin-top:.6rem">Add technician</button>
+    <table class="avail" style="margin-top:1.2rem">
+      <thead><tr><th>Name</th><th>Email (Google login)</th><th></th></tr></thead>
+      <tbody id="cr-list"></tbody>
+    </table>
+    <p class="hint" style="margin-top:.6rem">Tip: edit a name or email directly in the row — it saves as you go.</p>
+  </div>
+</section>
+
 <!-- ============ JOB EDITOR (opened from the calendar) ============ -->
 <section class="view" id="view-jobedit">
   <div class="panel" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
@@ -364,30 +366,33 @@
   </div>
 </div>
 
+<!-- ============ SIGN-IN SCREEN ============ -->
+<div id="auth-gate" class="modal-backdrop" style="display:flex;align-items:center">
+  <div class="modal" style="max-width:400px;text-align:center">
+    <div style="font-weight:800;letter-spacing:.06em;color:var(--ink);font-size:1.1rem;margin-bottom:.3rem">CREW <span style="color:var(--brand)">SCHEDULING</span></div>
+    <p class="hint" style="margin:.4rem 0 1.2rem">Please sign in with Google to continue.</p>
+    <button class="primary" id="google-signin" style="width:100%">Sign in with Google</button>
+    <p class="hint" id="auth-msg" style="margin-top:1rem"></p>
+  </div>
+</div>
+
 <script>
 "use strict";
 
-/* =================================================================
-   SUPABASE PERSISTENCE  — keys already filled in
-   ================================================================= */
-const SUPABASE_URL = "https://htyosvhcfuayqlhsznrk.supabase.co";   // your project URL (no /rest/v1/)
-const SUPABASE_KEY = ["eyJhbGciOiJIUzI1NiIsInR5cCI6Ik","pXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI","sInJlZiI6Imh0eW9zdmhjZnVheXFsa","HN6bnJrIiwicm9sZSI6ImFub24iLCJ","pYXQiOjE3ODY2NDgxNDQsImV4cCI6M","jEwMjIyNDE0NH0.E2wpc3J_HvNrztm","ml4zF8Trtlg7pDdf3Aq4mZ3W0t60"].join("");  // anon public key (split so password managers do not mask it)
-const STATE_ID = "main";                     // single shared schedule
+/* ================= SUPABASE PERSISTENCE — keys already filled in ================= */
+const SUPABASE_URL = "https://htyosvhcfuayqlhsznrk.supabase.co";
+const SUPABASE_KEY = ["eyJhbGciOiJIUzI1NiIsInR5cCI6Ik","pXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI","sInJlZiI6Imh0eW9zdmhjZnVheXFsa","HN6bnJrIiwicm9sZSI6ImFub24iLCJ","pYXQiOjE3ODY2NDgxNDQsImV4cCI6M","jEwMjIyNDE0NH0.E2wpc3J_HvNrztm","ml4zF8Trtlg7pDdf3Aq4mZ3W0t60"].join("");
+const STATE_ID = "main";
 
-/* Show what the database connection is doing, right on the page. */
 function setStatus(msg, color){
   const el = document.getElementById("db-status");
   if(el){ el.textContent = msg; el.style.color = color || "inherit"; }
   console.log("[DB]", msg);
 }
-
-/* Load the Supabase library, trying a backup CDN if the first is blocked. */
 function loadScript(src){
   return new Promise((resolve, reject)=>{
     const s = document.createElement("script");
-    s.src = src;
-    s.onload = ()=>resolve(true);
-    s.onerror = ()=>reject(new Error("blocked: " + src));
+    s.src = src; s.onload = ()=>resolve(true); s.onerror = ()=>reject(new Error("blocked: " + src));
     document.head.appendChild(s);
   });
 }
@@ -404,44 +409,34 @@ async function ensureLibrary(){
   }
   return false;
 }
-
-/* Connect. Sets `sb` on success, leaves it null (with a visible reason) on failure. */
 let sb = null;
 async function initDB(){
-  setStatus("⏳ Connecting to database…", "#7a4a10");
+  setStatus("⏳ Loading…", "#7a4a10");
   const ok = await ensureLibrary();
   if(!ok){
-    setStatus("⚠ Could NOT load the Supabase library — a browser ad-blocker / privacy shield or your network is blocking the CDN. Nothing will be saved. Try disabling the blocker for this site, or a different browser.", "#b91c1c");
+    setStatus("⚠ Could NOT load the Supabase library — a browser ad-blocker / privacy shield or your network is blocking the CDN. Try disabling the blocker for this site, or a different browser.", "#b91c1c");
     return;
   }
   try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
   catch(e){ setStatus("⚠ Could not start Supabase: " + e.message, "#b91c1c"); return; }
-  const { error } = await sb.from("app_state").select("id").limit(1);   // test the connection
-  if(error){ setStatus("⚠ Database reachable but returned an error: " + error.message, "#b91c1c"); sb = null; return; }
-  setStatus("✓ Connected — your changes are being saved.", "#047857");
+  setStatus("", "");
 }
-
-/* Load the saved schedule (or seed a fresh one the first time). */
 async function loadState(){
-  if(!sb) return;                                  // not connected → runs as local demo
+  if(!sb) return;
   try{
-    const { data, error } = await sb.from("app_state")
-      .select("data").eq("id", STATE_ID).maybeSingle();
+    const { data, error } = await sb.from("app_state").select("data").eq("id", STATE_ID).maybeSingle();
     if(error){ setStatus("⚠ Load failed: " + error.message, "#b91c1c"); return; }
-    if(data && data.data){ S = data.data; }        // resume where we left off
-    else { await sb.from("app_state").upsert({ id: STATE_ID, data: S }); } // first run
+    if(data && data.data){ S = data.data; }
+    else { await sb.from("app_state").upsert({ id: STATE_ID, data: S }); }
   }catch(e){ setStatus("⚠ Load error: " + e.message, "#b91c1c"); }
 }
-
-/* Save the whole schedule. Debounced so rapid clicks make one write. */
 let saveTimer;
 function saveState(){
   if(!sb){ setStatus("⚠ Not connected — this change was NOT saved.", "#b91c1c"); return; }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     try{
-      const { error } = await sb.from("app_state")
-        .upsert({ id: STATE_ID, data: S, updated_at: new Date().toISOString() });
+      const { error } = await sb.from("app_state").upsert({ id: STATE_ID, data: S, updated_at: new Date().toISOString() });
       if(error){ setStatus("⚠ Save failed: " + error.message, "#b91c1c"); }
       else { setStatus("✓ Saved.", "#047857"); }
     }catch(e){ setStatus("⚠ Save error: " + e.message, "#b91c1c"); }
@@ -497,7 +492,6 @@ const DAY_FULL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","S
 const MON3=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONF=["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-/* ------------------------------------------------------------- date utils */
 const pad=n=>String(n).padStart(2,"0");
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -512,9 +506,8 @@ const TODAY=new Date(); TODAY.setHours(0,0,0,0);
 const WEEK0=mondayOf(TODAY);
 const D=n=>iso(addDays(WEEK0,n));
 
-/* ------------------------------------------------------------ initial data */
 function seed(){
-  const staff=Array.from({length:10},(_,i)=>({id:i+1,name:`Crew ${i+1}`}));
+  const staff=Array.from({length:10},(_,i)=>({id:i+1,name:`Crew ${i+1}`,email:""}));
   const avail={
     1:[{date:D(0),start:"08:00",end:"19:00",note:""},{date:D(1),start:"08:00",end:"19:00",note:""},
        {date:D(2),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""}],
@@ -533,12 +526,11 @@ function seed(){
        {date:D(5),start:"10:00",end:"16:00",note:""}],
     8:[{date:D(3),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""},
        {date:D(5),start:"08:00",end:"19:00",note:""},{date:D(6),start:"09:00",end:"14:00",note:""}]
-    /* Crew 9 and Crew 10 have not submitted yet — that is what the amber banner shows. */
   };
   const notes={1:"Prefer north side jobs",8:"Has own transport"};
   let n=0;
   const mk=(c,ph,sv,ad,dt,st,en,need,nt)=>({
-    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,en,end:en,
+    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,end:en,
     need:need,notes:nt||"",crew:[],lead:null,cancelled:false});
   const jobs=[
     mk("Client A","+6580000001",["3 Bedroom Cleaning + FDC","Formaldehyde Treatment"],
@@ -552,12 +544,11 @@ function seed(){
     mk("Client E","+6580000005",["Large / Landed Cleaning + FDC"],
        "9 Parkview Ave #03-15",D(4),"09:00","17:00",3,"Post-renovation. Heavy dust.")
   ];
-  jobs[0].crew=[1,3]; jobs[0].lead=1;          // one already staffed, so the calendar is not empty
+  jobs[0].crew=[1,3]; jobs[0].lead=1;
   return {staff,avail,notes,jobs,nextId:n,week:iso(WEEK0),staffWeek:iso(WEEK0),month:{y:TODAY.getFullYear(),m:TODAY.getMonth()},who:1};
 }
 let S=seed();
 
-/* ------------------------------------------------------------------- helpers */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const nameOf=id=>{const s=S.staff.find(x=>x.id===id);return s?s.name:"";};
@@ -570,7 +561,6 @@ let toastTimer;
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2600);}
 
-/* who is free for a given job */
 function classify(job){
   const g={matched:[],partial:[],off:[]};
   S.staff.forEach(s=>{
@@ -594,18 +584,33 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.view==="roster")renderRoster();
   if(b.dataset.view==="dashboard")renderCalendar();
   if(b.dataset.view==="staff")renderStaffForm();
+  if(b.dataset.view==="crew")renderCrewAdmin();
 }));
 $("reset").addEventListener("click",()=>{S=seed();saveState();renderAll();toast("Back to the sample week");});
 
 /* ============================================== 1. CREW AVAILABILITY FORM */
 function renderStaffForm(){
-  const sel=$("sa-who");
-  if(!sel.options.length){
+  const mgmt = CURRENT_ROLE==="management";
+  $("sa-who-wrap").style.display = mgmt ? "" : "none";
+  if(mgmt){
+    const sel=$("sa-who");
+    if(!sel.dataset.bound){ sel.dataset.bound="1"; sel.addEventListener("change",()=>{S.who=+sel.value;renderStaffForm();}); }
+    sel.innerHTML="";
     S.staff.forEach(s=>{const o=document.createElement("option");o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
-    sel.addEventListener("change",()=>{S.who=+sel.value;renderStaffForm();});
+    if(!S.staff.find(s=>s.id===S.who)) S.who = S.staff.length?S.staff[0].id:null;
+    sel.value=S.who;
+  } else {
+    if(!MY_CREW_ID){
+      $("sa-unregistered").style.display="";
+      $("sa-formwrap").style.display="none";
+      $("sa-name").textContent="there";
+      return;
+    }
+    S.who = MY_CREW_ID;
   }
-  sel.value=S.who;
-  $("sa-name").textContent=nameOf(S.who);
+  $("sa-unregistered").style.display="none";
+  $("sa-formwrap").style.display="";
+  $("sa-name").textContent=nameOf(S.who)||"there";
   $("sa-notes").value=S.notes[S.who]||"";
   $("sa-saved").style.display="none";
   if(!S.staffWeek) S.staffWeek=iso(mondayOf(TODAY));
@@ -643,7 +648,6 @@ $("sa-save").addEventListener("click",()=>{
     out.push({date:card.dataset.d,start,end,note:card.querySelector(".t-note").value.trim()});
   });
   if(bad){toast("On every day you tick, “until” must be later than “from”.");return;}
-  // Merge: keep availability the crew saved for OTHER weeks, replace only this week's days.
   const weekDates=Array.from({length:7},(_,i)=>iso(addDays(parse(S.staffWeek),i)));
   const kept=(S.avail[S.who]||[]).filter(x=>!weekDates.includes(x.date));
   S.avail[S.who]=kept.concat(out).sort((a,b)=>a.date.localeCompare(b.date));
@@ -677,7 +681,6 @@ $("j-services").addEventListener("change",e=>{
     ? `${on.length} service${on.length>1?"s":""}${quoted?" · "+quoted+" to be quoted":""}`
     : "Nothing selected";
 });
-
 $("j-create").addEventListener("click",()=>{
   const client=$("j-client").value.trim(),addr=$("j-addr").value.trim(),date=$("j-date").value;
   const st=$("j-start").value,en=$("j-end").value;
@@ -735,9 +738,9 @@ $("cal-prev").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m
 $("cal-next").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m+1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
 $("cal-body").addEventListener("click",e=>{
   const ev=e.target.closest("[data-eventjob]");
-  if(ev){ openJobEditor(+ev.dataset.eventjob); return; }   // clicked a job → edit it
+  if(ev){ openJobEditor(+ev.dataset.eventjob); return; }
   const td=e.target.closest("[data-day]");
-  if(td) openDayModal(td.dataset.day);                     // clicked a date → see that day's jobs
+  if(td) openDayModal(td.dataset.day);
 });
 
 /* ================================================== 3. ROSTER / ASSIGN CREW */
@@ -983,13 +986,113 @@ function saveJobEditor(){
   backToCalendar();
 }
 
-/* ------------------------------------------------------------------ boot */
-function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();}
-async function init(){
-  await initDB();             // load the library + connect (shows status on the page)
-  await loadState();          // pull the saved schedule from Supabase
-  $("j-date").value=D(2);
+/* ============================ TECHNICIANS ADMIN ============================ */
+function renderCrewAdmin(){
+  $("cr-list").innerHTML = S.staff.length ? S.staff.map(s=>`
+    <tr>
+      <td><input type="text" data-cname="${s.id}" value="${esc(s.name)}" /></td>
+      <td><input type="text" data-cemail="${s.id}" value="${esc(s.email||'')}" placeholder="their Google email" /></td>
+      <td style="white-space:nowrap"><button class="deletebtn" data-cremove="${s.id}">Remove</button></td>
+    </tr>`).join("") : '<tr><td colspan="3"><span class="hint">No technicians yet — add one above.</span></td></tr>';
+}
+$("cr-add").addEventListener("click",()=>{
+  const name=$("cr-name").value.trim(), email=$("cr-email").value.trim().toLowerCase();
+  if(!name){ toast("Enter a name"); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ toast("Enter a valid email"); return; }
+  if(S.staff.some(s=>(s.email||"").toLowerCase()===email)){ toast("That email is already registered"); return; }
+  const id=S.staff.reduce((m,s)=>Math.max(m,s.id),0)+1;
+  S.staff.push({id,name,email});
+  $("cr-name").value=""; $("cr-email").value="";
+  saveState(); renderCrewAdmin(); toast(name+" added");
+});
+$("cr-list").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.cname){ const s=S.staff.find(x=>x.id===+t.dataset.cname); if(s){ s.name=t.value.trim()||s.name; saveState(); } }
+  if(t.dataset.cemail){
+    const em=t.value.trim().toLowerCase();
+    if(em && S.staff.some(x=>x.id!==+t.dataset.cemail && (x.email||"").toLowerCase()===em)){ toast("Another technician already uses that email"); renderCrewAdmin(); return; }
+    const s=S.staff.find(x=>x.id===+t.dataset.cemail); if(s){ s.email=t.value.trim(); saveState(); }
+  }
+});
+$("cr-list").addEventListener("click",e=>{
+  const id=e.target.dataset.cremove; if(!id) return;
+  const s=S.staff.find(x=>x.id===+id); if(!s) return;
+  if(!confirm(`Remove ${s.name}?\n\nTheir availability is deleted and they're taken off any jobs. This cannot be undone.`)) return;
+  S.staff=S.staff.filter(x=>x.id!==+id);
+  delete S.avail[id];
+  S.jobs.forEach(j=>{ j.crew=j.crew.filter(cid=>cid!==+id); if(j.lead===+id) j.lead=null; });
+  saveState(); renderCrewAdmin(); renderRoster(); renderCalendar(); toast(s.name+" removed");
+});
+
+/* ============================ SIGN-IN / ROLES ============================ */
+let signedInUserId=null, CURRENT_ROLE="crew", MY_CREW_ID=null;
+async function lookupRole(email){
+  try{
+    const { data, error } = await sb.from("user_roles").select("role").eq("email", email).maybeSingle();
+    if(error){ console.warn("role lookup:", error.message); return "crew"; }
+    return (data && data.role) ? data.role : "crew";
+  }catch(e){ console.warn(e); return "crew"; }
+}
+function applyRoleGating(){
+  const isMgmt = CURRENT_ROLE==="management";
+  document.querySelectorAll('nav button[data-view]').forEach(b=>{
+    b.style.display = (b.dataset.view==="staff" || isMgmt) ? "" : "none";
+  });
+  $("reset").style.display = isMgmt ? "" : "none";
+  if(!isMgmt){
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+    $("view-staff").classList.add("on");
+    document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current", x.dataset.view==="staff"?"true":"false"));
+  }
+}
+async function onSignedIn(session){
+  if(signedInUserId===session.user.id) return;
+  signedInUserId=session.user.id;
+  const email=(session.user.email||"").toLowerCase();
+  CURRENT_ROLE=await lookupRole(email);
+  $("auth-gate").style.display="none";
+  await loadState();
+  if(CURRENT_ROLE==="management"){
+    MY_CREW_ID=null;
+  } else {
+    CURRENT_ROLE="crew";
+    const me=S.staff.find(s=>(s.email||"").toLowerCase()===email);
+    MY_CREW_ID = me ? me.id : null;
+    if(MY_CREW_ID) S.who=MY_CREW_ID;
+  }
+  const label = CURRENT_ROLE==="management" ? "management"
+              : (MY_CREW_ID ? "crew — "+nameOf(MY_CREW_ID) : "crew (not registered)");
+  $("whoami").textContent=`${email} · ${label}`;
+  $("whoami").style.display="";
+  $("signout").style.display="";
+  applyRoleGating();
   renderAll();
+  applyRoleGating();
+  setStatus(`✓ Signed in as ${email} (${label})`, "#047857");
+}
+function onSignedOut(){
+  signedInUserId=null;
+  $("whoami").style.display="none";
+  $("signout").style.display="none";
+  $("auth-gate").style.display="flex";
+}
+$("google-signin").addEventListener("click", async ()=>{
+  if(!sb){ $("auth-msg").textContent="Cannot reach the sign-in service — see the message under the top bar."; return; }
+  $("auth-msg").textContent="Opening Google…";
+  const { error } = await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin + location.pathname } });
+  if(error) $("auth-msg").textContent="Sign-in error: " + error.message;
+});
+$("signout").addEventListener("click", async ()=>{ if(sb) await sb.auth.signOut(); location.reload(); });
+
+/* ------------------------------------------------------------------ boot */
+function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();renderCrewAdmin();}
+async function init(){
+  $("j-date").value=D(2);
+  await initDB();
+  if(!sb){ $("auth-gate").style.display="none"; return; }
+  sb.auth.onAuthStateChange((_event, session)=>{ session ? onSignedIn(session) : onSignedOut(); });
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session) await onSignedIn(session); else onSignedOut();
 }
 init();
 </script>
