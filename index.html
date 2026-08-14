@@ -267,6 +267,7 @@
       <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
       <tbody id="cal-body"></tbody>
     </table></div>
+    <button class="ghost" id="cal-export" style="margin-top:.7rem">&#8595; Download calendar (.ics)</button>
   </section>
 
   <section class="panel">
@@ -955,10 +956,12 @@ function renderJobEditor(){
     ${chips(g.off,"off","Not available "+DAY_FULL[dayIdx(j.date)])}
     <div class="je-actions">
       <button class="primary" id="je-save">Save changes</button>
+      <button class="ghost" id="je-gcal">Add to Google Calendar</button>
       <button class="cancelbtn" id="je-cancel">${j.cancelled?"Undo cancellation":"Cancel job"}</button>
       <button class="deletebtn" id="je-delete">Delete job</button>
     </div>`;
   $("je-services").addEventListener("change",e=>{ const l=e.target.closest(".svc"); if(l) l.classList.toggle("on",e.target.checked); });
+  $("je-gcal").addEventListener("click",()=>window.open(gcalLink(j),"_blank"));
   $("je-save").addEventListener("click",saveJobEditor);
   $("je-cancel").addEventListener("click",()=>{ j.cancelled=!j.cancelled; saveState(); renderJobEditor(); toast(j.cancelled?"Job cancelled":"Cancellation undone"); });
   $("je-delete").addEventListener("click",()=>{
@@ -1024,6 +1027,45 @@ $("cr-list").addEventListener("click",e=>{
   S.jobs.forEach(j=>{ j.crew=j.crew.filter(cid=>cid!==+id); if(j.lead===+id) j.lead=null; });
   saveState(); renderCrewAdmin(); renderRoster(); renderCalendar(); toast(s.name+" removed");
 });
+
+/* ==================== CALENDAR EXPORT (.ics file + Google Calendar) ==================== */
+function icsStamp(dt){ return dt.getUTCFullYear()+pad(dt.getUTCMonth()+1)+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+pad(dt.getUTCMinutes())+pad(dt.getUTCSeconds())+"Z"; }
+function icsDate(dateStr,timeStr){
+  const [y,mo,d]=dateStr.split("-").map(Number), [h,mi]=timeStr.split(":").map(Number);
+  return icsStamp(new Date(Date.UTC(y,mo-1,d,h-8,mi,0)));
+}
+function icsEsc(s){ return String(s==null?"":s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
+function jobDesc(j){ const crew=orderedCrew(j).join(", ");
+  return [`Client: ${j.client}`, j.phone?`Phone: ${j.phone}`:"", crew?`Crew: ${crew}`:"No crew yet", j.notes?`Notes: ${j.notes}`:""].filter(Boolean).join("\n"); }
+function buildICS(jobs){
+  const stamp=icsStamp(new Date());
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//M CLEAN//Crew Scheduling//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:M CLEAN Jobs"];
+  jobs.filter(j=>!j.cancelled).forEach(j=>{
+    lines.push("BEGIN:VEVENT",`UID:job-${j.id}@mclean.crew`,`DTSTAMP:${stamp}`,
+      `DTSTART:${icsDate(j.date,j.start)}`,`DTEND:${icsDate(j.date,j.end)}`,
+      `SUMMARY:${icsEsc(title(j)+" — "+j.client)}`);
+    if(j.address) lines.push(`LOCATION:${icsEsc(j.address)}`);
+    lines.push(`DESCRIPTION:${icsEsc(jobDesc(j))}`,"END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+function downloadICS(){
+  const blob=new Blob([buildICS(S.jobs)],{type:"text/calendar"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="mclean-jobs.ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast("Calendar file downloaded — import it into Google or Apple Calendar");
+}
+function gcalLink(j){
+  const dates=`${icsDate(j.date,j.start)}/${icsDate(j.date,j.end)}`;
+  const crew=orderedCrew(j).join(", ");
+  const details=[`Client: ${j.client}`, j.phone?`Phone: ${j.phone}`:"", crew?`Crew: ${crew}`:"", j.notes||""].filter(Boolean).join("\n");
+  const p=new URLSearchParams({action:"TEMPLATE",text:title(j)+" — "+j.client,dates,details,location:j.address||""});
+  return "https://calendar.google.com/calendar/render?"+p.toString();
+}
+if($("cal-export")) $("cal-export").addEventListener("click",downloadICS);
 
 /* ============================ SIGN-IN / ROLES ============================ */
 let signedInUserId=null, CURRENT_ROLE="crew", MY_CREW_ID=null;
