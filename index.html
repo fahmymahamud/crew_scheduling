@@ -192,6 +192,7 @@
 <div class="demonote">
   <strong>Interactive demo.</strong> Everything here works &mdash; create a job, assign a crew, generate
   the WhatsApp message. Changes are now saved to your Supabase database and shared across devices.
+  <span id="db-status" style="display:block;margin-top:.35rem;font-weight:700">Starting…</span>
 </div>
 
 <main>
@@ -301,8 +302,6 @@
 </main>
 <div class="toast" id="toast"></div>
 
-<!-- Supabase client library (loads before the app script below) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
@@ -313,36 +312,77 @@ const SUPABASE_URL = "https://htyosvhcfuayqlhsznrk.supabase.co";   // your proje
 const SUPABASE_KEY = "eyJhbGci••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••";  // anon public key
 const STATE_ID = "main";                     // single shared schedule
 
-let sb = null;
-try{
-  if(window.supabase && /^https:\/\//.test(SUPABASE_URL)){
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Show what the database connection is doing, right on the page. */
+function setStatus(msg, color){
+  const el = document.getElementById("db-status");
+  if(el){ el.textContent = msg; el.style.color = color || "inherit"; }
+  console.log("[DB]", msg);
+}
+
+/* Load the Supabase library, trying a backup CDN if the first is blocked. */
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = ()=>resolve(true);
+    s.onerror = ()=>reject(new Error("blocked: " + src));
+    document.head.appendChild(s);
+  });
+}
+async function ensureLibrary(){
+  if(window.supabase && window.supabase.createClient) return true;
+  const cdns = [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js",
+    "https://cdn.skypack.dev/@supabase/supabase-js@2"
+  ];
+  for(const url of cdns){
+    try{ await loadScript(url); }catch(e){ console.warn(e.message); continue; }
+    if(window.supabase && window.supabase.createClient) return true;
   }
-}catch(e){ console.error("Supabase init failed:", e); }
+  return false;
+}
+
+/* Connect. Sets `sb` on success, leaves it null (with a visible reason) on failure. */
+let sb = null;
+async function initDB(){
+  setStatus("⏳ Connecting to database…", "#7a4a10");
+  const ok = await ensureLibrary();
+  if(!ok){
+    setStatus("⚠ Could NOT load the Supabase library — a browser ad-blocker / privacy shield or your network is blocking the CDN. Nothing will be saved. Try disabling the blocker for this site, or a different browser.", "#b91c1c");
+    return;
+  }
+  try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
+  catch(e){ setStatus("⚠ Could not start Supabase: " + e.message, "#b91c1c"); return; }
+  const { error } = await sb.from("app_state").select("id").limit(1);   // test the connection
+  if(error){ setStatus("⚠ Database reachable but returned an error: " + error.message, "#b91c1c"); sb = null; return; }
+  setStatus("✓ Connected — your changes are being saved.", "#047857");
+}
 
 /* Load the saved schedule (or seed a fresh one the first time). */
 async function loadState(){
-  if(!sb) return;                                  // no keys yet → runs as local demo
+  if(!sb) return;                                  // not connected → runs as local demo
   try{
     const { data, error } = await sb.from("app_state")
       .select("data").eq("id", STATE_ID).maybeSingle();
-    if(error){ console.error("Load failed:", error.message); return; }
+    if(error){ setStatus("⚠ Load failed: " + error.message, "#b91c1c"); return; }
     if(data && data.data){ S = data.data; }        // resume where we left off
     else { await sb.from("app_state").upsert({ id: STATE_ID, data: S }); } // first run
-  }catch(e){ console.error("Load error:", e); }
+  }catch(e){ setStatus("⚠ Load error: " + e.message, "#b91c1c"); }
 }
 
 /* Save the whole schedule. Debounced so rapid clicks make one write. */
 let saveTimer;
 function saveState(){
-  if(!sb) return;
+  if(!sb){ setStatus("⚠ Not connected — this change was NOT saved.", "#b91c1c"); return; }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     try{
       const { error } = await sb.from("app_state")
         .upsert({ id: STATE_ID, data: S, updated_at: new Date().toISOString() });
-      if(error) console.error("Save failed:", error.message);
-    }catch(e){ console.error("Save error:", e); }
+      if(error){ setStatus("⚠ Save failed: " + error.message, "#b91c1c"); }
+      else { setStatus("✓ Saved.", "#047857"); }
+    }catch(e){ setStatus("⚠ Save error: " + e.message, "#b91c1c"); }
   }, 400);
 }
 
@@ -739,7 +779,8 @@ $("r-generate").addEventListener("click",()=>{
 /* ------------------------------------------------------------------ boot */
 function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();}
 async function init(){
-  await loadState();          // pull the saved schedule from Supabase first
+  await initDB();             // load the library + connect (shows status on the page)
+  await loadState();          // pull the saved schedule from Supabase
   $("j-date").value=D(2);
   renderAll();
 }
