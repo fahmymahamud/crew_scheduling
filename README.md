@@ -13,7 +13,7 @@ It covers the whole loop that most small operators still run by hand in a group 
 
 Everything in the demo works. Nothing is saved — refresh and it returns to the sample week.
 
-**[▶ Open the demo](https://crewscheduling.netlify.app/)** · **[SLIDES](slides.html)**
+**[▶ Open the demo](https://crewscheduling.netlify.app/)** · 
 
 ---
 
