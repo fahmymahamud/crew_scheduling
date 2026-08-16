@@ -201,7 +201,12 @@
   <span id="whoami" style="display:none;color:#8fa9ab;font-size:.8rem;align-self:center"></span>
   <button class="reset" id="signout" style="display:none">Sign out</button>
 </div>
-
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem">
+      <a href="webcal://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz"
+         style="background:transparent;border:1px solid #d1d5db;color:#4b5563;border-radius:8px;padding:.45rem .85rem;font-size:.85rem;text-decoration:none;display:inline-block;cursor:pointer">&#128197; Subscribe (iPhone / Apple)</a>
+      <button class="ghost" onclick="navigator.clipboard.writeText('https://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz').then(function(){toast('Link copied — paste into Google or Mac Calendar')})">&#128203; Copy calendar link</button>
+      <button class="ghost" id="cal-export">&#8595; Download .ics file</button>
+    </div>
 <div class="demonote">
   <strong>Crew Scheduling App</strong> Create a job, assign a crew, generate
   the message. Changes are now saved to your Supabase database and shared across devices.
