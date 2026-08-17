@@ -3,10 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crew Scheduling — interactive demo</title>
+<title>Crew Scheduling</title>
 <style>
-  /* Portfolio demo. The chrome is neutral; the screens inside keep the real
-     app's look, so what a visitor clicks is what the product actually does. */
   :root{
     --brand:#2E9BA4; --brand-deep:#14666E; --ink:#0B2B2E;
     --ground:#f5f7fb; --surface:#fff; --line:#e5e7eb; --muted:#6b7280; --body:#111827;
@@ -14,10 +12,8 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--ground);color:var(--body);
        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-
-  /* ---- demo chrome ---- */
   .bar{background:var(--ink);color:#fff;padding:.85rem 1.25rem;display:flex;
-       align-items:center;gap:1.25rem;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+       align-items:center;gap:1.25rem;flex-wrap:wrap;position:fixed;top:0;left:0;right:0;z-index:20}
   .logo{font-weight:800;letter-spacing:.06em;font-size:1rem}
   .logo span{color:var(--brand)}
   nav{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto}
@@ -31,8 +27,6 @@
             padding:.6rem 1.25rem;font-size:.85rem}
   main{padding:1.5rem 1.25rem 4rem;max-width:1400px;margin:0 auto}
   .view{display:none} .view.on{display:block}
-
-  /* ---- shared app look ---- */
   .panel{background:var(--surface);border-radius:12px;padding:1rem 1.25rem;
          box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:1rem}
   h2{margin:.1rem 0 .75rem;font-size:1.2rem}
@@ -54,8 +48,6 @@
   .cols{display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,1.9fr);
         gap:1rem;align-items:start}
   @media(max-width:980px){.cols{grid-template-columns:1fr}.pair,.pair.narrow{grid-template-columns:1fr}}
-
-  /* ---- service picker ---- */
   .services{border:1px solid #d1d5db;border-radius:8px;max-height:19rem;overflow-y:auto;
             padding:.35rem .5rem;background:#fdfdfe}
   .svc-group{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
@@ -72,8 +64,6 @@
   .total{display:flex;justify-content:space-between;align-items:baseline;
          padding:.7rem .2rem 0;font-size:.9rem;color:#4b5563}
   .total strong{font-size:1.2rem;color:var(--body);font-variant-numeric:tabular-nums}
-
-  /* ---- month calendar ---- */
   .calhead{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
   .calnav{display:flex;align-items:center;gap:.9rem;font-size:.9rem}
   .calnav button{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.9rem;padding:.2rem}
@@ -106,8 +96,6 @@
   .key.short{background:#fffbeb;border-left-color:#d97706}
   .key.unassigned{background:#f3f4f6;border-left-color:#9ca3af}
   .key.cancelled{background:#f9fafb;border-left-color:#e5e7eb;color:#9ca3af;text-decoration:line-through}
-
-  /* ---- roster ---- */
   .job{border:1px solid var(--line);border-radius:10px;padding:.9rem;margin-bottom:.9rem}
   .job h4{margin:0 0 .5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
   .count{float:right;text-transform:none;letter-spacing:0;font-weight:700;border-radius:999px;
@@ -155,8 +143,6 @@
   .pill.none{background:#f3f4f6;color:var(--muted)}
   .slot{display:block;color:#374151}
   .slot em{color:var(--muted);font-style:normal}
-
-  /* ---- crew availability (phone) ---- */
   .phone{max-width:430px;margin:0 auto;background:#fff;border-radius:14px;padding:1.5rem;
          box-shadow:0 8px 24px rgba(0,0,0,.08)}
   .day{border:1px solid var(--line);border-radius:12px;padding:.85rem;margin-bottom:.65rem}
@@ -175,27 +161,20 @@
   .day.leave .times{display:none}
   .row{display:flex;gap:.6rem;flex-wrap:wrap}
   .row .fld{flex:1 1 130px}
-
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:1.5rem;background:var(--ink);
          color:#fff;padding:.8rem 1.3rem;border-radius:999px;font-size:.9rem;z-index:50;
          opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
   @media (prefers-reduced-motion:reduce){.toast{transition:none}}
-
-  /* ---- week navigator (crew form) ---- */
   .wknav{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:center;margin:.5rem 0}
   .wknav button{background:#f3f4f6;border:1px solid var(--line);color:#374151;border-radius:8px;
                 padding:.4rem .7rem;font-size:.85rem;cursor:pointer}
   .wknav button:hover{background:#e5e7eb}
   .wknav strong{font-size:.88rem;min-width:9.5rem;text-align:center}
-
-  /* ---- clickable calendar ---- */
   table.cal td[data-day]{cursor:pointer}
   table.cal td[data-day]:hover{background:#eef2ff}
   .ev[data-eventjob]{cursor:pointer}
   .ev[data-eventjob]:hover{outline:1px solid #c7d2fe}
-
-  /* ---- day detail modal ---- */
   .modal-backdrop{position:fixed;inset:0;background:rgba(11,43,46,.45);z-index:60;
                   display:flex;align-items:flex-start;justify-content:center;padding:4rem 1rem}
   .modal{background:#fff;border-radius:14px;max-width:560px;width:100%;padding:1.25rem;
@@ -211,32 +190,35 @@
   .dm-job.cancelled{border-left-color:#e5e7eb;opacity:.6}
   .dm-job-top{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem}
   .dm-arrow{color:#2563eb;font-size:.78rem;margin-top:.35rem}
-
-  /* ---- job editor ---- */
   .je-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem}
 </style>
 </head>
 <body>
 
 <div class="bar">
-  <div class="logo">CREW <span>SCHEDULING</span></div>
+  <div class="logo">SG MCLEAN <span>SCHEDULING</span></div>
   <nav>
-    <button data-view="staff" aria-current="false">1 &middot; Crew update availability</button>
-    <button data-view="dashboard" aria-current="true">2 &middot; Office posts a job</button>
-    <button data-view="roster" aria-current="false">3 &middot; Assign crews &amp; send</button>
+    <button data-view="staff" aria-current="false">1 &middot; Availability Form</button>
+    <button data-view="dashboard" aria-current="true">2 &middot; Calendar & Job Form </button>
+    <button data-view="roster" aria-current="false">3 &middot; Assignment &amp; send</button>
     <button data-view="crew" aria-current="false">Technicians</button>
   </nav>
   <button class="reset" id="reset">Start over</button>
   <span id="whoami" style="display:none;color:#8fa9ab;font-size:.8rem;align-self:center"></span>
   <button class="reset" id="signout" style="display:none">Sign out</button>
 </div>
-
 <div class="demonote">
-  <strong>Interactive demo.</strong> Everything here works &mdash; create a job, assign a crew, generate
-  the WhatsApp message. Changes are now saved to your Supabase database and shared across devices.
+  <strong>Crew Scheduling App</strong> Create a job, assign a crew, generate
+  the message. Changes are now saved to your Supabase database and shared across devices.
   <span id="db-status" style="display:block;margin-top:.35rem;font-weight:700">Starting…</span>
 </div>
-
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem">
+      <a href="webcal://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz"
+         style="background:transparent;border:1px solid #d1d5db;color:#4b5563;border-radius:8px;padding:.45rem .85rem;font-size:.85rem;text-decoration:none;display:inline-block;cursor:pointer">&#128197; Subscribe (iPhone / Apple)</a>
+      <button class="ghost" onclick="navigator.clipboard.writeText('https://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz').then(function(){toast('Link copied — paste into Google or Mac Calendar')})">&#128203; Copy calendar link</button>
+      <button class="ghost" id="cal-export">&#8595; Download .ics file</button>
+  </div>
+  
 <main>
 
 <!-- ============ 1. CREW ============ -->
@@ -259,7 +241,7 @@
         <button type="button" id="sa-nextweek">Next &rsaquo;</button>
         <button type="button" id="sa-nextmonth" title="Jump forward one month">&raquo;</button>
       </div>
-      <p class="hint" style="text-align:center;margin:0 0 .6rem">Pick a week above, tick your days, then press Save. Tick &#9992;&#65039; Off on days you can't come. You can save each week separately.</p>
+      <p class="hint" style="text-align:center;margin:0 0 .6rem">Pick a week above, tick your days, then press Save. You can save each week separately.</p>
       <div id="sa-days"></div>
       <div class="field">
         <label for="sa-notes">Anything else for the office?</label>
@@ -296,12 +278,6 @@
       <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
       <tbody id="cal-body"></tbody>
     </table></div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem">
-      <a href="webcal://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz"
-         style="background:transparent;border:1px solid #d1d5db;color:#4b5563;border-radius:8px;padding:.45rem .85rem;font-size:.85rem;text-decoration:none;display:inline-block;cursor:pointer">&#128197; Subscribe (iPhone / Apple)</a>
-      <button class="ghost" onclick="navigator.clipboard.writeText('https://htyosvhcfuayqlhsznrk.supabase.co/functions/v1/smooth-responder?key=i6tHU6GL7pzrOxnhw8Jd01X9kHGtLyJz').then(function(){toast('Link copied — paste into Google or Mac Calendar')})">&#128203; Copy calendar link</button>
-      <button class="ghost" id="cal-export">&#8595; Download .ics file</button>
-    </div>
   </section>
 
   <section class="panel">
@@ -415,27 +391,20 @@
 <script>
 "use strict";
 
-/* =================================================================
-   SUPABASE PERSISTENCE  — keys already filled in
-   ================================================================= */
-const SUPABASE_URL = "https://htyosvhcfuayqlhsznrk.supabase.co";   // your project URL (no /rest/v1/)
-const SUPABASE_KEY = ["eyJhbGciOiJIUzI1NiIsInR5cCI6Ik","pXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI","sInJlZiI6Imh0eW9zdmhjZnVheXFsa","HN6bnJrIiwicm9sZSI6ImFub24iLCJ","pYXQiOjE3ODY2NDgxNDQsImV4cCI6M","jEwMjIyNDE0NH0.E2wpc3J_HvNrztm","ml4zF8Trtlg7pDdf3Aq4mZ3W0t60"].join("");  // anon public key (split so password managers do not mask it)
-const STATE_ID = "main";                     // single shared schedule
+/* ================= SUPABASE PERSISTENCE — keys already filled in ================= */
+const SUPABASE_URL = "https://htyosvhcfuayqlhsznrk.supabase.co";
+const SUPABASE_KEY = ["eyJhbGciOiJIUzI1NiIsInR5cCI6Ik","pXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI","sInJlZiI6Imh0eW9zdmhjZnVheXFsa","HN6bnJrIiwicm9sZSI6ImFub24iLCJ","pYXQiOjE3ODY2NDgxNDQsImV4cCI6M","jEwMjIyNDE0NH0.E2wpc3J_HvNrztm","ml4zF8Trtlg7pDdf3Aq4mZ3W0t60"].join("");
+const STATE_ID = "main";
 
-/* Show what the database connection is doing, right on the page. */
 function setStatus(msg, color){
   const el = document.getElementById("db-status");
   if(el){ el.textContent = msg; el.style.color = color || "inherit"; }
   console.log("[DB]", msg);
 }
-
-/* Load the Supabase library, trying a backup CDN if the first is blocked. */
 function loadScript(src){
   return new Promise((resolve, reject)=>{
     const s = document.createElement("script");
-    s.src = src;
-    s.onload = ()=>resolve(true);
-    s.onerror = ()=>reject(new Error("blocked: " + src));
+    s.src = src; s.onload = ()=>resolve(true); s.onerror = ()=>reject(new Error("blocked: " + src));
     document.head.appendChild(s);
   });
 }
@@ -452,8 +421,6 @@ async function ensureLibrary(){
   }
   return false;
 }
-
-/* Connect. Sets `sb` on success, leaves it null (with a visible reason) on failure. */
 let sb = null;
 async function initDB(){
   setStatus("⏳ Loading…", "#7a4a10");
@@ -464,30 +431,24 @@ async function initDB(){
   }
   try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
   catch(e){ setStatus("⚠ Could not start Supabase: " + e.message, "#b91c1c"); return; }
-  setStatus("", "");   // ready; the sign-in flow takes it from here
+  setStatus("", "");
 }
-
-/* Load the saved schedule (or seed a fresh one the first time). */
 async function loadState(){
-  if(!sb) return;                                  // not connected → runs as local demo
+  if(!sb) return;
   try{
-    const { data, error } = await sb.from("app_state")
-      .select("data").eq("id", STATE_ID).maybeSingle();
+    const { data, error } = await sb.from("app_state").select("data").eq("id", STATE_ID).maybeSingle();
     if(error){ setStatus("⚠ Load failed: " + error.message, "#b91c1c"); return; }
-    if(data && data.data){ S = data.data; }        // resume where we left off
-    else { await sb.from("app_state").upsert({ id: STATE_ID, data: S }); } // first run
+    if(data && data.data){ S = data.data; }
+    else { await sb.from("app_state").upsert({ id: STATE_ID, data: S }); }
   }catch(e){ setStatus("⚠ Load error: " + e.message, "#b91c1c"); }
 }
-
-/* Save the whole schedule. Debounced so rapid clicks make one write. */
 let saveTimer;
 function saveState(){
   if(!sb){ setStatus("⚠ Not connected — this change was NOT saved.", "#b91c1c"); return; }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     try{
-      const { error } = await sb.from("app_state")
-        .upsert({ id: STATE_ID, data: S, updated_at: new Date().toISOString() });
+      const { error } = await sb.from("app_state").upsert({ id: STATE_ID, data: S, updated_at: new Date().toISOString() });
       if(error){ setStatus("⚠ Save failed: " + error.message, "#b91c1c"); }
       else { setStatus("✓ Saved.", "#047857"); }
     }catch(e){ setStatus("⚠ Save error: " + e.message, "#b91c1c"); }
@@ -502,732 +463,4 @@ const SERVICES = [
     ["4-Room HDB","4-Room HDB Standard Cleaning",490],
     ["5-Room HDB","5-Room HDB Standard Cleaning",550],
     ["EA / EM","EA / EM Standard Cleaning",690]]],
-  ["Home cleaning — with floor deep cleaning", [
-    ["Studio / 2-Room HDB","Studio / 2-Room HDB Cleaning + FDC",480],
-    ["3-Room HDB","3-Room HDB Cleaning + FDC",550],
-    ["4-Room HDB","4-Room HDB Cleaning + FDC",650],
-    ["5-Room HDB","5-Room HDB Cleaning + FDC",750],
-    ["EA / EM","EA / EM Cleaning + FDC",880]]],
-  ["Sofa deep cleaning (incl. leather)", [
-    ["1 Seater","1 Seater Sofa Deep Cleaning",70],
-    ["2 Seater","2 Seater Sofa Deep Cleaning",80],
-    ["3 Seater","3 Seater Sofa Deep Cleaning",90],
-    ["Other size","Sofa Deep Cleaning (other size)",null]]],
-  ["Mattress deep cleaning", [
-    ["Single / Super Single","Single / Super Single Mattress Deep Cleaning",70],
-    ["Queen / King","Queen / King Mattress Deep Cleaning",90],
-    ["Bed Frame + Headboard","Bed Frame + Headboard Deep Cleaning",50]]],
-  ["Chair deep cleaning", [
-    ["Dining Chairs, up to 6","Dining Chairs Deep Cleaning (up to 6)",70],
-    ["Gaming / Office Chair","Gaming / Office Chair Deep Cleaning",70]]],
-  ["Rug / carpet deep cleaning", [
-    ["Small, 120x190cm","Small Rug / Carpet Deep Cleaning",70],
-    ["Medium, 170x240cm","Medium Rug / Carpet Deep Cleaning",90],
-    ["Large, up to 300x400cm","Large Rug / Carpet Deep Cleaning",120]]],
-  ["Baby equipment", [
-    ["Baby Cot","Baby Cot Deep Cleaning",30],
-    ["Single Stroller","Single Stroller Deep Cleaning",70],
-    ["Double Stroller","Double Stroller Deep Cleaning",90],
-    ["Car Seat","Car Seat Deep Cleaning",50]]],
-  ["Curtain cleaning", [
-    ["Blackout, per set","Blackout Curtain Cleaning",70],
-    ["Day + Night, per set","Day + Night Curtain Cleaning",80]]],
-  ["Add-ons", [
-    ["Formaldehyde Treatment","Formaldehyde Treatment",150],
-    ["Vinyl Coating","Vinyl Coating",150],
-    ["Antimicrobial Treatment","Antimicrobial Treatment",10]]]
-];
-const PRICE = {}; SERVICES.forEach(g=>g[1].forEach(([,v,p])=>PRICE[v]=p));
-
-const DAY_FULL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-const MON3=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const MONF=["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-/* ------------------------------------------------------------- date utils */
-const pad=n=>String(n).padStart(2,"0");
-const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
-function mondayOf(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(0,0,0,0);return x;}
-const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
-const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m;};
-function fmtTime(t){let[h,m]=t.split(":").map(Number);const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${pad(m)} ${ap}`;}
-function fmtDate(s){const d=parse(s);return `${d.getDate()} ${MON3[d.getMonth()]} ${d.getFullYear()}`;}
-const dayIdx=s=>(parse(s).getDay()+6)%7;
-
-const TODAY=new Date(); TODAY.setHours(0,0,0,0);
-const WEEK0=mondayOf(TODAY);
-const D=n=>iso(addDays(WEEK0,n));
-
-/* ------------------------------------------------------------ initial data */
-function seed(){
-  const staff=Array.from({length:10},(_,i)=>({id:i+1,name:`Crew ${i+1}`,email:""}));
-  const avail={
-    1:[{date:D(0),start:"08:00",end:"19:00",note:""},{date:D(1),start:"08:00",end:"19:00",note:""},
-       {date:D(2),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""}],
-    2:[{date:D(0),start:"13:00",end:"19:00",note:"Afternoon only, morning class"},
-       {date:D(2),start:"08:00",end:"18:00",note:""},{date:D(3),start:"08:00",end:"18:00",note:""},
-       {date:D(4),start:"08:00",end:"19:00",note:""}],
-    3:[{date:D(0),start:"08:00",end:"18:00",note:""},{date:D(1),start:"08:00",end:"14:00",note:""},
-       {date:D(4),start:"08:00",end:"19:00",note:""},{date:D(5),start:"09:00",end:"15:00",note:""}],
-    4:[{date:D(2),start:"08:00",end:"18:00",note:""},
-       {date:D(3),start:"08:00",end:"18:00",note:"Can start earlier if needed"}],
-    5:[{date:D(0),start:"09:00",end:"17:00",note:""},{date:D(1),start:"09:00",end:"17:00",note:""},
-       {date:D(3),start:"09:00",end:"17:00",note:""}],
-    6:[{date:D(1),start:"08:00",end:"13:00",note:"Must leave by 1pm"},
-       {date:D(2),start:"08:00",end:"13:00",note:""},{date:D(4),start:"08:00",end:"13:00",note:""}],
-    7:[{date:D(0),start:"10:00",end:"20:00",note:""},{date:D(2),start:"10:00",end:"20:00",note:""},
-       {date:D(5),start:"10:00",end:"16:00",note:""}],
-    8:[{date:D(3),start:"08:00",end:"19:00",note:""},{date:D(4),start:"08:00",end:"19:00",note:""},
-       {date:D(5),start:"08:00",end:"19:00",note:""},{date:D(6),start:"09:00",end:"14:00",note:""}]
-    /* Crew 9 and Crew 10 have not submitted yet — that is what the amber banner shows. */
-  };
-  const notes={1:"Prefer north side jobs",8:"Has own transport"};
-  let n=0;
-  const mk=(c,ph,sv,ad,dt,st,en,need,nt)=>({
-    id:++n,client:c,phone:ph,services:sv,address:ad,date:dt,start:st,end:en,
-    need:need,notes:nt||"",crew:[],lead:null,cancelled:false});
-  const jobs=[
-    mk("Client A","+6580000001",["3 Bedroom Cleaning + FDC","Formaldehyde Treatment"],
-       "12 Northview Ave #09-205",D(0),"09:00","14:00",2,"Shift the fridge back after cleaning."),
-    mk("Client B","+6580000002",["3 Seater Sofa Deep Cleaning","Antimicrobial Treatment"],
-       "28 Midtown St #05-118",D(0),"15:00","18:00",1,""),
-    mk("Client C","+6580000003",["Queen / King Mattress Deep Cleaning"],
-       "5 Eastpoint Ctrl #11-402",D(1),"10:00","12:00",1,"Dog at home, please close the gate."),
-    mk("Client D","+6580000004",["4 Bedroom Standard Cleaning"],
-       "88 Ringside Rd #12-330",D(2),"09:00","15:00",2,""),
-    mk("Client E","+6580000005",["Large / Landed Cleaning + FDC"],
-       "9 Parkview Ave #03-15",D(4),"09:00","17:00",3,"Post-renovation. Heavy dust.")
-  ];
-  jobs[0].crew=[1,3]; jobs[0].lead=1;          // one already staffed, so the calendar is not empty
-  return {staff,avail,notes,jobs,nextId:n,week:iso(WEEK0),staffWeek:iso(WEEK0),month:{y:TODAY.getFullYear(),m:TODAY.getMonth()},who:1};
-}
-let S=seed();
-
-/* ------------------------------------------------------------------- helpers */
-const $=id=>document.getElementById(id);
-const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const nameOf=id=>{const s=S.staff.find(x=>x.id===id);return s?s.name:"";};
-const title=j=>j.services.length?j.services.join(" + "):j.client;
-const priceOf=j=>{const p=j.services.map(v=>PRICE[v]).filter(v=>v!=null);return p.length?p.reduce((a,b)=>a+b,0):null;};
-const weekJobs=()=>{const a=S.week,b=iso(addDays(parse(S.week),6));
-  return S.jobs.filter(j=>j.date>=a&&j.date<=b).sort((x,y)=>x.date===y.date?toMin(x.start)-toMin(y.start):x.date.localeCompare(y.date));};
-
-let toastTimer;
-function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2600);}
-
-/* who is free for a given job */
-function classify(job){
-  const g={matched:[],partial:[],off:[]};
-  S.staff.forEach(s=>{
-    const all=(S.avail[s.id]||[]).filter(x=>x.date===job.date);
-    const lv=all.find(x=>x.off);
-    const w=all.filter(x=>!x.off);
-    if(lv){g.off.push({s,label:"",note:"On leave"+(lv.note?": "+lv.note:"")});return;}
-    if(!w.length){g.off.push({s,label:"",note:""});return;}
-    const label=w.map(x=>`${fmtTime(x.start)}–${fmtTime(x.end)}`).join(", ");
-    const note=w.map(x=>x.note).filter(Boolean).join("; ");
-    const covers=w.some(x=>toMin(x.start)<=toMin(job.start)&&toMin(x.end)>=toMin(job.end));
-    (covers?g.matched:g.partial).push({s,label,note});
-  });
-  return g;
-}
-
-/* ------------------------------------------------------------------ nav */
-document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current","false"));
-  b.setAttribute("aria-current","true");
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
-  $("view-"+b.dataset.view).classList.add("on");
-  window.scrollTo({top:0,behavior:"smooth"});
-  if(b.dataset.view==="roster")renderRoster();
-  if(b.dataset.view==="dashboard")renderCalendar();
-  if(b.dataset.view==="staff")renderStaffForm();
-  if(b.dataset.view==="crew")renderCrewAdmin();
-}));
-$("reset").addEventListener("click",()=>{S=seed();saveState();renderAll();toast("Back to the sample week");});
-
-/* ============================================== 1. CREW AVAILABILITY FORM */
-function renderStaffForm(){
-  const mgmt = CURRENT_ROLE==="management";
-  $("sa-who-wrap").style.display = mgmt ? "" : "none";   // dropdown only for management
-  if(mgmt){
-    const sel=$("sa-who");
-    if(!sel.dataset.bound){ sel.dataset.bound="1"; sel.addEventListener("change",()=>{S.who=+sel.value;renderStaffForm();}); }
-    sel.innerHTML="";
-    S.staff.forEach(s=>{const o=document.createElement("option");o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
-    if(!S.staff.find(s=>s.id===S.who)) S.who = S.staff.length?S.staff[0].id:null;
-    sel.value=S.who;
-  } else {
-    if(!MY_CREW_ID){                                     // signed-in crew, not registered yet
-      $("sa-unregistered").style.display="";
-      $("sa-formwrap").style.display="none";
-      $("sa-name").textContent="there";
-      return;
-    }
-    S.who = MY_CREW_ID;                                  // crew can only edit their own hours
-  }
-  $("sa-unregistered").style.display="none";
-  $("sa-formwrap").style.display="";
-  $("sa-name").textContent=nameOf(S.who)||"there";
-  $("sa-notes").value=S.notes[S.who]||"";
-  $("sa-saved").style.display="none";
-  if(!S.staffWeek) S.staffWeek=iso(mondayOf(TODAY));
-  const wa=parse(S.staffWeek), wb=addDays(wa,6);
-  $("sa-weeklabel").textContent=`${wa.getDate()} ${MON3[wa.getMonth()]} – ${wb.getDate()} ${MON3[wb.getMonth()]} ${wb.getFullYear()}`;
-
-  const mine=S.avail[S.who]||[];
-  const base=parse(S.staffWeek);
-  $("sa-days").innerHTML=Array.from({length:7},(_,i)=>{
-    const d=iso(addDays(base,i)),cur=mine.find(x=>x.date===d);
-    const isOff=!!(cur&&cur.off), on=!!cur&&!isOff;
-    return `<div class="day ${on?"on":""}${isOff?" leave":""}" data-d="${d}">
-      <div class="day-head">
-        <input type="checkbox" class="cb-avail" id="c-${d}" ${on?"checked":""} />
-        <label for="c-${d}">${DAY_FULL[i]}<span class="date">${parse(d).getDate()} ${MON3[parse(d).getMonth()]}</span></label>
-        <label class="offtag"><input type="checkbox" class="cb-off" ${isOff?"checked":""} /> &#9992;&#65039; Off</label>
-      </div>
-      <div class="times">
-        <div class="row">
-          <div class="fld"><label>Available from</label><input type="time" class="t-start" value="${on&&cur.start?cur.start:"09:00"}" /></div>
-          <div class="fld"><label>Until</label><input type="time" class="t-end" value="${on&&cur.end?cur.end:"17:00"}" /></div>
-        </div>
-        <div style="margin-top:.5rem"><label>Remarks (optional)</label>
-          <input type="text" class="t-note" value="${esc(on?cur.note:"")}" placeholder="e.g. can start earlier" /></div>
-      </div>
-      <div class="offbox"><label>Reason (shows on the office calendar)</label>
-        <input type="text" class="t-offnote" value="${esc(isOff?cur.note:"")}" placeholder="e.g. flight, MC, leave" /></div>
-    </div>`;
-  }).join("");
-
-  $("sa-days").querySelectorAll(".cb-avail").forEach(cb=>
-    cb.addEventListener("change",e=>{
-      const card=e.target.closest(".day");
-      if(e.target.checked){ card.querySelector(".cb-off").checked=false; card.classList.remove("leave"); }
-      card.classList.toggle("on",e.target.checked);
-    }));
-  $("sa-days").querySelectorAll(".cb-off").forEach(cb=>
-    cb.addEventListener("change",e=>{
-      const card=e.target.closest(".day");
-      if(e.target.checked){ card.querySelector(".cb-avail").checked=false; card.classList.remove("on"); }
-      card.classList.toggle("leave",e.target.checked);
-    }));
-}
-$("sa-save").addEventListener("click",()=>{
-  const out=[];let bad=false;
-  $("sa-days").querySelectorAll(".day").forEach(card=>{
-    if(card.querySelector(".cb-off").checked){
-      out.push({date:card.dataset.d,off:true,note:card.querySelector(".t-offnote").value.trim()});
-      return;
-    }
-    if(!card.querySelector(".cb-avail").checked)return;
-    const start=card.querySelector(".t-start").value,end=card.querySelector(".t-end").value;
-    if(!start||!end||toMin(start)>=toMin(end)){bad=true;return;}
-    out.push({date:card.dataset.d,start,end,note:card.querySelector(".t-note").value.trim()});
-  });
-  if(bad){toast("On every day you tick, “until” must be later than “from”.");return;}
-  // Merge: keep availability the crew saved for OTHER weeks, replace only this week's days.
-  const weekDates=Array.from({length:7},(_,i)=>iso(addDays(parse(S.staffWeek),i)));
-  const kept=(S.avail[S.who]||[]).filter(x=>!weekDates.includes(x.date));
-  S.avail[S.who]=kept.concat(out).sort((a,b)=>a.date.localeCompare(b.date));
-  S.notes[S.who]=$("sa-notes").value.trim();
-  saveState();
-  $("sa-saved").style.display="block";
-  toast(nameOf(S.who)+"'s hours saved for this week");
-});
-function shiftStaffWeek(days){ S.staffWeek=iso(addDays(parse(S.staffWeek),days)); renderStaffForm(); }
-function shiftStaffMonth(delta){ const d=parse(S.staffWeek); S.staffWeek=iso(mondayOf(new Date(d.getFullYear(),d.getMonth()+delta,d.getDate()))); renderStaffForm(); }
-$("sa-prevweek").addEventListener("click",()=>shiftStaffWeek(-7));
-$("sa-nextweek").addEventListener("click",()=>shiftStaffWeek(7));
-$("sa-prevmonth").addEventListener("click",()=>shiftStaffMonth(-1));
-$("sa-nextmonth").addEventListener("click",()=>shiftStaffMonth(1));
-
-/* ==================================================== 2. NEW JOB + CALENDAR */
-function renderServices(){
-  $("j-services").innerHTML=SERVICES.map(([g,items])=>
-    `<div class="svc-group">${esc(g)}</div>`+items.map(([label,value,price])=>
-      `<label class="svc"><input type="checkbox" value="${esc(value)}" data-price="${price==null?0:price}" />
-        <span class="svc-name">${esc(label)}</span>
-        <span class="svc-price">${price==null?"quote":"$"+price}</span></label>`).join("")).join("");
-}
-$("j-services").addEventListener("change",e=>{
-  e.target.closest(".svc").classList.toggle("on",e.target.checked);
-  const on=[...$("j-services").querySelectorAll("input:checked")];
-  let total=0,quoted=0;
-  on.forEach(i=>{const p=+i.dataset.price;p?total+=p:quoted++;});
-  $("j-sum").textContent="$"+total;
-  $("j-count").textContent=on.length
-    ? `${on.length} service${on.length>1?"s":""}${quoted?" · "+quoted+" to be quoted":""}`
-    : "Nothing selected";
-});
-
-$("j-create").addEventListener("click",()=>{
-  const client=$("j-client").value.trim(),addr=$("j-addr").value.trim(),date=$("j-date").value;
-  const st=$("j-start").value,en=$("j-end").value;
-  if(!client||!addr||!date){toast("Client name, address and date are needed");return;}
-  if(!st||!en||toMin(st)>=toMin(en)){toast("End time must be later than start time");return;}
-  const services=[...$("j-services").querySelectorAll("input:checked")].map(i=>i.value);
-  S.jobs.push({id:++S.nextId,client,phone:$("j-phone").value.trim(),services,address:addr,
-    date,start:st,end:en,need:Math.max(1,+$("j-need").value||1),
-    notes:$("j-notes").value.trim(),crew:[],lead:null,cancelled:false});
-  S.week=iso(mondayOf(parse(date)));
-  S.month={y:parse(date).getFullYear(),m:parse(date).getMonth()};
-  saveState();
-  ["j-client","j-phone","j-addr","j-notes"].forEach(i=>$(i).value="");
-  $("j-services").querySelectorAll("input:checked").forEach(i=>{i.checked=false;i.closest(".svc").classList.remove("on");});
-  $("j-sum").textContent="$0";$("j-count").textContent="Nothing selected";
-  renderCalendar();renderRoster();
-  toast(`${client} added — open step 3 to assign the crew`);
-});
-
-function stateOf(j){
-  if(j.cancelled)return"cancelled";
-  if(!j.crew.length)return"unassigned";
-  return j.crew.length<j.need?"short":"confirmed";
-}
-function renderCalendar(){
-  const {y,m}=S.month;
-  $("cal-label").textContent=`${MONF[m]} ${y}`;
-  const first=mondayOf(new Date(y,m,1));
-  const weeks=[];let cur=new Date(first);
-  while(cur<=new Date(y,m+1,0)||weeks.length<1||cur.getDay()!==1){
-    const row=[];for(let i=0;i<7;i++){row.push(new Date(cur));cur=addDays(cur,1);}
-    weeks.push(row);
-    if(cur>new Date(y,m+1,0))break;
-  }
-  const totals={confirmed:0,short:0,unassigned:0,cancelled:0};
-  $("cal-body").innerHTML=weeks.map(row=>"<tr>"+row.map(d=>{
-    const key=iso(d),inM=d.getMonth()===m;
-    const jobs=S.jobs.filter(j=>j.date===key).sort((a,b)=>toMin(a.start)-toMin(b.start));
-    if(inM)jobs.forEach(j=>totals[stateOf(j)]++);
-    return `<td class="${inM?"":"outside"}${key===iso(TODAY)?" today":""}" data-day="${key}">
-      <div class="daynum">${d.getDate()}</div>${jobs.map(j=>{
-        const st=stateOf(j),crew=orderedCrew(j).join(", "),p=priceOf(j);
-        return `<div class="ev ${st}" data-eventjob="${j.id}" title="${esc(j.client)} · ${j.start}–${j.end}${j.address?" · "+esc(j.address):""}">
-          <div class="evtop"><span class="evtime">${j.start}</span><span class="evtitle">${crew?esc(crew):"<em>Unassigned</em>"}${j.crew.length&&j.crew.length<j.need?` (${j.crew.length}/${j.need})`:""}</span></div>
-          ${st==="cancelled"?'<div class="evtag">Cancelled</div>'
-            :`<div class="evcrew">${esc(title(j))}${p?`, $${p}`:""}</div>`}</div>`;}).join("")}</td>`;
-  }).join("")+"</tr>").join("");
-  $("cal-totals").textContent=`This month: ${totals.confirmed} fully staffed · ${totals.short} short · `
-    +`${totals.unassigned} unassigned · ${totals.cancelled} cancelled`;
-}
-const orderedCrew=j=>{const lead=j.lead?nameOf(j.lead):"";
-  const rest=j.crew.filter(id=>id!==j.lead).map(nameOf);return lead?[lead,...rest]:rest;};
-$("cal-prev").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m-1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
-$("cal-next").addEventListener("click",()=>{const d=new Date(S.month.y,S.month.m+1,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCalendar();});
-$("cal-body").addEventListener("click",e=>{
-  const ev=e.target.closest("[data-eventjob]");
-  if(ev){ openJobEditor(+ev.dataset.eventjob); return; }   // clicked a job → edit it
-  const td=e.target.closest("[data-day]");
-  if(td) openDayModal(td.dataset.day);                     // clicked a date → see that day's jobs
-});
-
-/* ================================================== 3. ROSTER / ASSIGN CREW */
-function renderRoster(){
-  const a=parse(S.week),b=addDays(a,6);
-  $("wk-label").textContent=`${a.getDate()} ${MON3[a.getMonth()]} – ${b.getDate()} ${MON3[b.getMonth()]} ${b.getFullYear()}`;
-
-  const submitted=S.staff.filter(s=>(S.avail[s.id]||[]).some(w=>w.date>=S.week&&w.date<=iso(b)));
-  $("r-availnote").innerHTML=submitted.length===S.staff.length
-    ? `<div class="ok">All ${S.staff.length} crew members have submitted for this week.</div>`
-    : `<div class="warn">${submitted.length} of ${S.staff.length} crew members have submitted. You can still
-       assign anyone — people who have not replied are dimmed.</div>`;
-  $("r-avail").innerHTML=S.staff.map(s=>{
-    const w=(S.avail[s.id]||[]).filter(x=>x.date>=S.week&&x.date<=iso(b))
-      .sort((p,q)=>p.date.localeCompare(q.date));
-    return `<tr><td><strong>${esc(s.name)}</strong><br />
-      <span class="pill ${w.length?"yes":"none"}">${w.length?"Submitted":"Not submitted"}</span></td>
-      <td>${w.length?w.map(x=>x.off
-        ?`<span class="slot" style="color:#b91c1c">&#9992;&#65039; ${parse(x.date).getDate()}/${parse(x.date).getMonth()+1} OFF${x.note?` <em>— ${esc(x.note)}</em>`:""}</span>`
-        :`<span class="slot">${parse(x.date).getDate()}/${parse(x.date).getMonth()+1}
-        · ${x.start}–${x.end}${x.note?` <em>— ${esc(x.note)}</em>`:""}</span>`).join("")
-        :'<span class="hint">—</span>'}
-        ${S.notes[s.id]?`<span class="slot"><em>Note: ${esc(S.notes[s.id])}</em></span>`:""}</td></tr>`;
-  }).join("");
-
-  const jobs=weekJobs();
-  $("r-jobs").innerHTML=jobs.length?jobs.map(j=>{
-    const g=classify(j),p=priceOf(j);
-    const chips=(list,cls,heading)=>list.length?`<div class="grouplabel">${heading}</div><div class="crew">`
-      +list.map(e=>`<label class="${cls}" title="${e.label?"Available "+esc(e.label):"Did not mark this day available"}${e.note?" — "+esc(e.note):""}">
-          <input type="checkbox" data-job="${j.id}" value="${e.s.id}" ${j.crew.includes(e.s.id)?"checked":""} />
-          ${esc(e.s.name)}${e.label?` <span class="win">${esc(e.label)}</span>`:""}</label>`).join("")+"</div>":"";
-    return `<div class="job ${j.cancelled?"cancelled":""}" data-job="${j.id}">
-      <h4>${DAY_FULL[dayIdx(j.date)]} · ${parse(j.date).getDate()} ${MON3[parse(j.date).getMonth()]}
-        <span class="ctag">Cancelled</span><span class="count" data-count="${j.id}"></span></h4>
-      <div class="meta">${esc(j.client)}${j.phone?" · "+esc(j.phone):""} · ${j.start}–${j.end}
-        · needs ${j.need} crew member${j.need>1?"s":""}${p?` · <strong>$${p}</strong>`:""}</div>
-      <div class="jobactions">
-        <button class="cancelbtn" data-cancel="${j.id}">${j.cancelled?"Undo cancellation":"Cancel job"}</button>
-        <button class="deletebtn" data-del="${j.id}">Delete</button>
-      </div>
-      <div class="jobbody">
-        <div class="field"><label>Title</label><input type="text" data-title="${j.id}" value="${esc(title(j))}" /></div>
-        <div class="field"><label>Location</label><input type="text" data-addr="${j.id}" value="${esc(j.address)}" /></div>
-        <div class="field"><label>Lead (shown as [Name] and listed first)</label>
-          <select data-lead="${j.id}"><option value="">— none —</option>
-            ${S.staff.map(s=>`<option value="${s.id}" ${j.lead===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}
-          </select></div>
-        ${chips(g.matched,"match","Free for this whole job")}
-        ${chips(g.partial,"partial","Free that day, but not for the full job time")}
-        ${chips(g.off,"off","Not available "+DAY_FULL[dayIdx(j.date)])}
-        <div class="field"><label>Extra note (appears under the crew list)</label>
-          <textarea rows="2" data-note="${j.id}">${esc(j.notes)}</textarea></div>
-      </div></div>`;
-  }).join(""):'<div class="empty">No jobs this week. Add one in step 2.</div>';
-  jobs.forEach(j=>updateCount(j.id));
-}
-function updateCount(id){
-  const j=S.jobs.find(x=>x.id===id);if(!j)return;
-  const el=document.querySelector(`[data-count="${id}"]`);if(!el)return;
-  el.textContent=`${j.crew.length} of ${j.need}`;
-  el.className="count "+(j.crew.length<j.need?"short":j.crew.length>j.need?"over":"full");
-}
-$("r-jobs").addEventListener("change",e=>{
-  const t=e.target;
-  if(t.dataset.job){const j=S.jobs.find(x=>x.id===+t.dataset.job);
-    j.crew=t.checked?[...new Set([...j.crew,+t.value])]:j.crew.filter(i=>i!==+t.value);
-    if(!j.crew.includes(j.lead))j.lead=null;
-    updateCount(j.id);renderCalendar();}
-  if(t.dataset.lead){const j=S.jobs.find(x=>x.id===+t.dataset.lead);
-    j.lead=t.value?+t.value:null;
-    if(j.lead&&!j.crew.includes(j.lead)){j.crew.push(j.lead);renderRoster();}
-    renderCalendar();}
-  if(t.dataset.note)S.jobs.find(x=>x.id===+t.dataset.note).notes=t.value;
-  if(t.dataset.addr)S.jobs.find(x=>x.id===+t.dataset.addr).address=t.value;
-  saveState();
-});
-$("r-jobs").addEventListener("click",e=>{
-  const c=e.target.dataset.cancel,d=e.target.dataset.del;
-  if(c){const j=S.jobs.find(x=>x.id===+c);j.cancelled=!j.cancelled;saveState();renderRoster();renderCalendar();
-    toast(j.cancelled?"Job cancelled — it drops out of the message":"Cancellation undone");}
-  if(d){const j=S.jobs.find(x=>x.id===+d);
-    if(confirm(`Delete "${title(j)}" permanently?\n\nIts crew assignments go too. This cannot be undone.`)){
-      S.jobs=S.jobs.filter(x=>x.id!==+d);saveState();renderRoster();renderCalendar();toast("Job deleted");}}
-});
-$("wk-prev").addEventListener("click",()=>{S.week=iso(addDays(parse(S.week),-7));renderRoster();});
-$("wk-next").addEventListener("click",()=>{S.week=iso(addDays(parse(S.week),7));renderRoster();});
-
-$("r-generate").addEventListener("click",()=>{
-  const jobs=weekJobs().filter(j=>!j.cancelled&&j.crew.length);
-  if(!jobs.length){toast("Tick at least one crew member first");return;}
-  const out=[];let cur=null;
-  jobs.forEach(j=>{
-    if(j.date!==cur){cur=j.date;out.push(`*${DAY_FULL[dayIdx(j.date)]}*`);}
-    const t=(document.querySelector(`[data-title="${j.id}"]`)||{}).value||title(j);
-    const ad=(document.querySelector(`[data-addr="${j.id}"]`)||{}).value||j.address;
-    const lead=j.lead?nameOf(j.lead):"";
-    const lines=[lead?`[${lead}] ${t}`:t,
-      `Scheduled: ${fmtDate(j.date)} at ${fmtTime(j.start)} to ${fmtTime(j.end)}, SGT`];
-    if(ad)lines.push(`Location: ${ad}`);
-    orderedCrew(j).forEach((n,i)=>lines.push(`${i+1}. ${n}`));
-    let block=lines.join("\n");
-    if(j.notes.trim())block+="\n\n"+j.notes.trim();
-    out.push(block);
-  });
-  const text=out.join("\n\n");
-  $("r-out").innerHTML=`<p class="hint">Edit anything before copying — this box is free text.</p>
-    <textarea class="out" id="msg"></textarea>
-    <button class="primary" style="margin-top:.6rem" id="copy">Copy to clipboard</button>
-    <span class="hint" id="copied" style="margin-left:.6rem"></span>`;
-  $("msg").value=text;
-  $("copy").addEventListener("click",()=>{
-    navigator.clipboard.writeText($("msg").value).then(()=>{
-      $("copied").textContent="Copied — paste it into the WhatsApp group.";
-      setTimeout(()=>$("copied").textContent="",3000);
-    },()=>{$("msg").select();$("copied").textContent="Press Ctrl+C to copy.";});
-  });
-  $("r-out").scrollIntoView({behavior:"smooth",block:"nearest"});
-  toast("Message ready");
-});
-
-/* ============================ DAY DETAIL POPUP ============================ */
-function openDayModal(date){
-  const jobs=S.jobs.filter(j=>j.date===date).sort((a,b)=>toMin(a.start)-toMin(b.start));
-  $("dm-title").textContent=`${DAY_FULL[dayIdx(date)]} · ${fmtDate(date)}`;
-  $("dm-add").dataset.date=date;
-  $("dm-body").innerHTML=jobs.length?jobs.map(j=>{
-    const st=stateOf(j),crew=orderedCrew(j).join(", "),p=priceOf(j);
-    return `<div class="dm-job ${st}" data-openjob="${j.id}">
-      <div class="dm-job-top"><span class="evtime">${j.start}–${j.end}</span>
-        <strong>${crew?esc(crew):"Unassigned"}</strong>${st==="cancelled"?' <span class="hint">Cancelled</span>':` <span class="hint">(${j.crew.length}/${j.need})</span>`}</div>
-      <div class="meta">${esc(title(j))}${p?`, <strong>$${p}</strong>`:""}</div>
-      <div class="evcrew">${esc(j.client)}${j.phone?" · "+esc(j.phone):""}${j.address?" · "+esc(j.address):""}</div>
-      <div class="dm-arrow">Click to open &amp; edit &rarr;</div></div>`;
-  }).join(""):'<div class="empty">No jobs on this date yet.</div>';
-  $("day-modal").style.display="flex";
-}
-function closeDayModal(){ $("day-modal").style.display="none"; }
-$("dm-close").addEventListener("click",closeDayModal);
-$("day-modal").addEventListener("click",e=>{ if(e.target.id==="day-modal") closeDayModal(); });
-$("dm-body").addEventListener("click",e=>{
-  const c=e.target.closest("[data-openjob]");
-  if(c) openJobEditor(+c.dataset.openjob);
-});
-$("dm-add").addEventListener("click",e=>{
-  const date=e.target.dataset.date;
-  closeDayModal(); goToView("dashboard");
-  $("j-date").value=date; $("j-client").focus();
-  toast("New job date set — fill the details, then press Create job");
-});
-
-/* ============================ JOB EDITOR ============================ */
-let editingId=null;
-function goToView(name){
-  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current", x.dataset.view===name?"true":"false"));
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
-  $("view-"+name).classList.add("on");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function openJobEditor(id){
-  editingId=id; closeDayModal();
-  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current","false"));
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
-  $("view-jobedit").classList.add("on");
-  window.scrollTo({top:0,behavior:"smooth"});
-  renderJobEditor();
-}
-function backToCalendar(){
-  const j=S.jobs.find(x=>x.id===editingId);
-  if(j) S.month={y:parse(j.date).getFullYear(),m:parse(j.date).getMonth()};
-  editingId=null;
-  goToView("dashboard"); renderCalendar();
-}
-$("je-back").addEventListener("click",backToCalendar);
-
-function renderJobEditor(){
-  const j=S.jobs.find(x=>x.id===editingId);
-  if(!j){ backToCalendar(); return; }
-  const g=classify(j);
-  const svc=SERVICES.map(([grp,items])=>`<div class="svc-group">${esc(grp)}</div>`+
-    items.map(([label,value,price])=>`<label class="svc ${j.services.includes(value)?"on":""}">
-      <input type="checkbox" class="je-svc" value="${esc(value)}" ${j.services.includes(value)?"checked":""} />
-      <span class="svc-name">${esc(label)}</span>
-      <span class="svc-price">${price==null?"quote":"$"+price}</span></label>`).join("")).join("");
-  const chips=(list,cls,heading)=>list.length?`<div class="grouplabel">${heading}</div><div class="crew">`+
-    list.map(e=>`<label class="${cls}" title="${e.label?"Available "+esc(e.label):"Did not mark this day available"}${e.note?" — "+esc(e.note):""}">
-      <input type="checkbox" class="je-crew" value="${e.s.id}" ${j.crew.includes(e.s.id)?"checked":""} />
-      ${esc(e.s.name)}${e.label?` <span class="win">${esc(e.label)}</span>`:""}</label>`).join("")+"</div>":"";
-  $("je-body").innerHTML=`
-    ${j.cancelled?'<div class="warn">This job is cancelled — it is left out of the WhatsApp message.</div>':""}
-    <div class="pair">
-      <div><label>Client name</label><input type="text" id="je-client" value="${esc(j.client)}" /></div>
-      <div><label>Client phone</label><input type="text" id="je-phone" value="${esc(j.phone)}" /></div>
-    </div>
-    <div class="field"><label>Address</label><input type="text" id="je-addr" value="${esc(j.address)}" /></div>
-    <div class="field"><label>Date</label><input type="date" id="je-date" value="${j.date}" /></div>
-    <div class="pair">
-      <div><label>Start time</label><input type="time" id="je-start" value="${j.start}" /></div>
-      <div><label>End time</label><input type="time" id="je-end" value="${j.end}" /></div>
-    </div>
-    <div class="pair narrow" style="margin-top:.6rem">
-      <div><label>Crew members needed</label><input type="number" id="je-need" min="1" value="${j.need}" /></div>
-      <div><label>Remarks</label><input type="text" id="je-notes" value="${esc(j.notes)}" /></div>
-    </div>
-    <h3>Services</h3>
-    <div class="services" id="je-services">${svc}</div>
-    <h3>Lead <span class="hint" style="font-weight:400">— shown as [Name] and listed first</span></h3>
-    <select id="je-lead"><option value="">— none —</option>
-      ${S.staff.map(s=>`<option value="${s.id}" ${j.lead===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select>
-    <h3>Assign crew</h3>
-    ${chips(g.matched,"match","Free for this whole job")}
-    ${chips(g.partial,"partial","Free that day, but not for the full job time")}
-    ${chips(g.off,"off","Not available "+DAY_FULL[dayIdx(j.date)])}
-    <div class="je-actions">
-      <button class="primary" id="je-save">Save changes</button>
-      <button class="ghost" id="je-gcal">Add to Google Calendar</button>
-      <button class="cancelbtn" id="je-cancel">${j.cancelled?"Undo cancellation":"Cancel job"}</button>
-      <button class="deletebtn" id="je-delete">Delete job</button>
-    </div>`;
-  $("je-services").addEventListener("change",e=>{ const l=e.target.closest(".svc"); if(l) l.classList.toggle("on",e.target.checked); });
-  $("je-gcal").addEventListener("click",()=>window.open(gcalLink(j),"_blank"));
-  $("je-save").addEventListener("click",saveJobEditor);
-  $("je-cancel").addEventListener("click",()=>{ j.cancelled=!j.cancelled; saveState(); renderJobEditor(); toast(j.cancelled?"Job cancelled":"Cancellation undone"); });
-  $("je-delete").addEventListener("click",()=>{
-    if(confirm(`Delete "${title(j)}" permanently?\n\nThis cannot be undone.`)){
-      S.jobs=S.jobs.filter(x=>x.id!==j.id); saveState(); toast("Job deleted"); backToCalendar();
-    }
-  });
-}
-function saveJobEditor(){
-  const j=S.jobs.find(x=>x.id===editingId); if(!j) return;
-  const client=$("je-client").value.trim(), addr=$("je-addr").value.trim(), date=$("je-date").value;
-  const st=$("je-start").value, en=$("je-end").value;
-  if(!client||!addr||!date){ toast("Client name, address and date are needed"); return; }
-  if(!st||!en||toMin(st)>=toMin(en)){ toast("End time must be later than start time"); return; }
-  j.client=client; j.phone=$("je-phone").value.trim(); j.address=addr;
-  j.date=date; j.start=st; j.end=en;
-  j.need=Math.max(1,+$("je-need").value||1);
-  j.notes=$("je-notes").value.trim();
-  j.services=[...document.querySelectorAll("#je-services .je-svc:checked")].map(i=>i.value);
-  j.crew=[...document.querySelectorAll("#je-body .je-crew:checked")].map(i=>+i.value);
-  let lead=$("je-lead").value?+$("je-lead").value:null;
-  if(lead && !j.crew.includes(lead)) j.crew.push(lead);
-  j.lead=lead;
-  saveState();
-  toast("Job saved");
-  backToCalendar();
-}
-
-/* ============================ TECHNICIANS ADMIN ============================ */
-function renderCrewAdmin(){
-  $("cr-list").innerHTML = S.staff.length ? S.staff.map(s=>`
-    <tr>
-      <td><input type="text" data-cname="${s.id}" value="${esc(s.name)}" /></td>
-      <td><input type="text" data-cemail="${s.id}" value="${esc(s.email||'')}" placeholder="their Google email" /></td>
-      <td style="white-space:nowrap"><button class="deletebtn" data-cremove="${s.id}">Remove</button></td>
-    </tr>`).join("") : '<tr><td colspan="3"><span class="hint">No technicians yet — add one above.</span></td></tr>';
-}
-$("cr-add").addEventListener("click",()=>{
-  const name=$("cr-name").value.trim(), email=$("cr-email").value.trim().toLowerCase();
-  if(!name){ toast("Enter a name"); return; }
-  if(!/^\S+@\S+\.\S+$/.test(email)){ toast("Enter a valid email"); return; }
-  if(S.staff.some(s=>(s.email||"").toLowerCase()===email)){ toast("That email is already registered"); return; }
-  const id=S.staff.reduce((m,s)=>Math.max(m,s.id),0)+1;
-  S.staff.push({id,name,email});
-  $("cr-name").value=""; $("cr-email").value="";
-  saveState(); renderCrewAdmin(); toast(name+" added");
-});
-$("cr-list").addEventListener("change",e=>{
-  const t=e.target;
-  if(t.dataset.cname){ const s=S.staff.find(x=>x.id===+t.dataset.cname); if(s){ s.name=t.value.trim()||s.name; saveState(); } }
-  if(t.dataset.cemail){
-    const em=t.value.trim().toLowerCase();
-    if(em && S.staff.some(x=>x.id!==+t.dataset.cemail && (x.email||"").toLowerCase()===em)){ toast("Another technician already uses that email"); renderCrewAdmin(); return; }
-    const s=S.staff.find(x=>x.id===+t.dataset.cemail); if(s){ s.email=t.value.trim(); saveState(); }
-  }
-});
-$("cr-list").addEventListener("click",e=>{
-  const id=e.target.dataset.cremove; if(!id) return;
-  const s=S.staff.find(x=>x.id===+id); if(!s) return;
-  if(!confirm(`Remove ${s.name}?\n\nTheir availability is deleted and they're taken off any jobs. This cannot be undone.`)) return;
-  S.staff=S.staff.filter(x=>x.id!==+id);
-  delete S.avail[id];
-  S.jobs.forEach(j=>{ j.crew=j.crew.filter(cid=>cid!==+id); if(j.lead===+id) j.lead=null; });
-  saveState(); renderCrewAdmin(); renderRoster(); renderCalendar(); toast(s.name+" removed");
-});
-
-/* ============================ SIGN-IN / ROLES ============================ */
-let signedInUserId=null, CURRENT_ROLE="crew", MY_CREW_ID=null;
-async function lookupRole(email){
-  try{
-    const { data, error } = await sb.from("user_roles").select("role").eq("email", email).maybeSingle();
-    if(error){ console.warn("role lookup:", error.message); return "crew"; }
-    return (data && data.role) ? data.role : "crew";
-  }catch(e){ console.warn(e); return "crew"; }
-}
-function applyRoleGating(){
-  const isMgmt = CURRENT_ROLE==="management";
-  document.querySelectorAll('nav button[data-view]').forEach(b=>{
-    b.style.display = (b.dataset.view==="staff" || isMgmt) ? "" : "none";   // crew see only the availability tab
-  });
-  $("reset").style.display = isMgmt ? "" : "none";
-  if(!isMgmt){                                   // crew: force the availability page
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
-    $("view-staff").classList.add("on");
-    document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-current", x.dataset.view==="staff"?"true":"false"));
-  }
-}
-async function onSignedIn(session){
-  if(signedInUserId===session.user.id) return;   // already handled this session
-  signedInUserId=session.user.id;
-  const email=(session.user.email||"").toLowerCase();
-  CURRENT_ROLE=await lookupRole(email);
-  $("auth-gate").style.display="none";
-  await loadState();                             // need S.staff before we can match a technician
-  if(CURRENT_ROLE==="management"){
-    MY_CREW_ID=null;
-  } else {
-    CURRENT_ROLE="crew";
-    const me=S.staff.find(s=>(s.email||"").toLowerCase()===email);
-    MY_CREW_ID = me ? me.id : null;
-    if(MY_CREW_ID) S.who=MY_CREW_ID;
-  }
-  const label = CURRENT_ROLE==="management" ? "management"
-              : (MY_CREW_ID ? "crew — "+nameOf(MY_CREW_ID) : "crew (not registered)");
-  $("whoami").textContent=`${email} · ${label}`;
-  $("whoami").style.display="";
-  $("signout").style.display="";
-  applyRoleGating();
-  renderAll();
-  applyRoleGating();                             // re-apply after render rebuilt the views
-  setStatus(`✓ Signed in as ${email} (${label})`, "#047857");
-}
-function onSignedOut(){
-  signedInUserId=null;
-  $("whoami").style.display="none";
-  $("signout").style.display="none";
-  $("auth-gate").style.display="flex";
-}
-$("google-signin").addEventListener("click", async ()=>{
-  if(!sb){ $("auth-msg").textContent="Cannot reach the sign-in service — see the message under the top bar."; return; }
-  $("auth-msg").textContent="Opening Google…";
-  const { error } = await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin + location.pathname } });
-  if(error) $("auth-msg").textContent="Sign-in error: " + error.message;
-});
-$("signout").addEventListener("click", async ()=>{ if(sb) await sb.auth.signOut(); location.reload(); });
-
-/* ==================== CALENDAR EXPORT (.ics file + Google Calendar) ==================== */
-function icsStamp(dt){ return dt.getUTCFullYear()+pad(dt.getUTCMonth()+1)+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+pad(dt.getUTCMinutes())+pad(dt.getUTCSeconds())+"Z"; }
-function icsDate(dateStr,timeStr){                 // treat stored times as Singapore (UTC+8), output UTC
-  const [y,mo,d]=dateStr.split("-").map(Number), [h,mi]=timeStr.split(":").map(Number);
-  return icsStamp(new Date(Date.UTC(y,mo-1,d,h-8,mi,0)));
-}
-function icsEsc(s){ return String(s==null?"":s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
-function jobDesc(j){ const crew=orderedCrew(j).join(", ");
-  return [`Client: ${j.client}`, j.phone?`Phone: ${j.phone}`:"", crew?`Crew: ${crew}`:"No crew yet", j.notes?`Notes: ${j.notes}`:""].filter(Boolean).join("\n"); }
-function buildICS(jobs){
-  const stamp=icsStamp(new Date());
-  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//M CLEAN//Crew Scheduling//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:M CLEAN Jobs"];
-  jobs.filter(j=>!j.cancelled).forEach(j=>{
-    const crew=orderedCrew(j).join(", "), p=priceOf(j);
-    lines.push("BEGIN:VEVENT",`UID:job-${j.id}@mclean.crew`,`DTSTAMP:${stamp}`,
-      `DTSTART:${icsDate(j.date,j.start)}`,`DTEND:${icsDate(j.date,j.end)}`,
-      `SUMMARY:${icsEsc(`[${crew||"Unassigned"}] ${title(j)}${p?", $"+p:""}`)}`);
-    if(j.address) lines.push(`LOCATION:${icsEsc(j.address)}`);
-    lines.push(`DESCRIPTION:${icsEsc(jobDesc(j))}`,"END:VEVENT");
-  });
-  const offByDate={};
-  Object.keys(S.avail||{}).forEach(id=>{(S.avail[id]||[]).forEach(x=>{
-    if(x.off){(offByDate[x.date]=offByDate[x.date]||[]).push(nameOf(+id)+(x.note?` (${x.note})`:""));}
-  });});
-  Object.keys(offByDate).sort().forEach(d=>{
-    const dt=d.replace(/-/g,""), nx=iso(addDays(parse(d),1)).replace(/-/g,"");
-    lines.push("BEGIN:VEVENT",`UID:off-${d}@mclean.crew`,`DTSTAMP:${stamp}`,
-      `DTSTART;VALUE=DATE:${dt}`,`DTEND;VALUE=DATE:${nx}`,
-      `SUMMARY:${icsEsc("✈️ Off: "+offByDate[d].join(", "))}`,"END:VEVENT");
-  });
-  lines.push("END:VCALENDAR");
-  return lines.join("\r\n");
-}
-function downloadICS(){
-  const blob=new Blob([buildICS(S.jobs)],{type:"text/calendar"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download="mclean-jobs.ics";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1500);
-  toast("Calendar file downloaded — import it into Google or Apple Calendar");
-}
-function gcalLink(j){
-  const dates=`${icsDate(j.date,j.start)}/${icsDate(j.date,j.end)}`;
-  const crew=orderedCrew(j).join(", "), pr=priceOf(j);
-  const details=[`Client: ${j.client}`, j.phone?`Phone: ${j.phone}`:"", crew?`Crew: ${crew}`:"", j.notes||""].filter(Boolean).join("\n");
-  const p=new URLSearchParams({action:"TEMPLATE",text:`[${crew||"Unassigned"}] ${title(j)}${pr?", $"+pr:""}`,dates,details,location:j.address||""});
-  return "https://calendar.google.com/calendar/render?"+p.toString();
-}
-if($("cal-export")) $("cal-export").addEventListener("click",downloadICS);
-
-/* ------------------------------------------------------------------ boot */
-function renderAll(){renderServices();renderStaffForm();renderCalendar();renderRoster();renderCrewAdmin();}
-async function init(){
-  $("j-date").value=D(2);
-  await initDB();                                 // load library + create client
-  if(!sb){ $("auth-gate").style.display="none"; return; }   // library blocked → status shows why
-  sb.auth.onAuthStateChange((_event, session)=>{ session ? onSignedIn(session) : onSignedOut(); });
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session) await onSignedIn(session); else onSignedOut();
-}
-init();
-</script>
-</body>
-</html>
+  ["Home cleaning
