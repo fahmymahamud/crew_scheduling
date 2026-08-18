@@ -58,8 +58,6 @@ Then browse to <http://localhost:8000>.
 
 The whole demo is one static file, so any static host works.
 
-- **GitHub Pages** — push the repo, then Settings → Pages → deploy from `main` / root.
-  The demo lands at `https://<user>.github.io/<repo>/`.
 - **Netlify / Cloudflare Pages / Vercel** — drag the folder onto the dashboard, or point
   the project at the repo with no build command and the root as the publish directory.
 
